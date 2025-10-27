@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id
+  email         String       @unique
+  name          String?
+  createdAt     DateTime     @default(now())
+  memberships   Membership[]
+  ownedProjects Project[]    @relation("UserOwnedProjects")
+}
+
+model Project {
+  id          String       @id 
+  name        String
+  summary     String?
+  description String?
+  status     String       @default("backlog")
+  priority    String       @default("no-priority")
+  startDate   DateTime?
+  targetDate  DateTime?
+  ownerId     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  boards      Board[]
+  memberships Membership[]
+  owner       User         @relation("UserOwnedProjects", fields: [ownerId], references: [id])
+}
+
+model Membership {
+  id        String  @id @default(cuid())
+  role      Role    @default(VIEWER)
+  userId    String
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id])
+  columns   Column[]
+}
+
+model Column {
+  id      String @id @default(cuid())
+  title   String
+  boardId String
+  order   Int
+  board   Board  @relation(fields: [boardId], references: [id])
+  tasks   Task[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  columnId    String
+  priority    String    @default("medium")
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  column      Column    @relation(fields: [columnId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
