@@ -18,12 +18,12 @@ model User {
 }
 
 model Project {
-  id          String       @id 
+  id          String       @id @default(uuid()) 
   name        String
   summary     String?
   description String?
-  status     String       @default("backlog")
-  priority    String       @default("no-priority")
+  status     Status       @default(BACKLOG)
+  priority    Priority       @default(NO_PRIORITY)
   startDate   DateTime?
   targetDate  DateTime?
   ownerId     String
@@ -78,4 +78,19 @@ enum Role {
   ADMIN
   EDITOR
   VIEWER
+}
+
+enum Priority {
+  NO_PRIORITY
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Status {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  DONE
 }

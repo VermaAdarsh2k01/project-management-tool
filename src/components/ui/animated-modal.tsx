@@ -50,7 +50,7 @@ export const ModalTrigger = ({
   return (
     <button
       className={cn(
-        "px-4 py-2 rounded-md text-black dark:text-white text-center relative overflow-hidden",
+        "px-4 py-2 rounded-md text-black dark:text-white text-center relative overflow-hidden hover:cursor-pointer",
         className
       )}
       onClick={() => setOpen(true)}
@@ -96,14 +96,14 @@ export const ModalBody = ({
             opacity: 0,
             backdropFilter: "blur(0px)",
           }}
-          className="fixed [perspective:800px] [transform-style:preserve-3d] inset-0 h-full w-full  flex items-center justify-center z-50"
+          className="fixed [perspective:900px] [transform-style:preserve-3d] inset-0 h-full w-full  flex items-center justify-center z-50"
         >
           <Overlay />
 
           <motion.div
             ref={modalRef}
             className={cn(
-              "min-h-[50%] max-h-[90%] md:max-w-[40%] bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-50 flex flex-col flex-1 overflow-hidden",
+              "min-h-[50%] max-h-[90%] md:max-w-[60%] bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-50 flex flex-col flex-1 overflow-hidden",
               className
             )}
             initial={{
@@ -229,6 +229,31 @@ export const useOutsideClick = (
       if (!ref.current || ref.current.contains(event.target)) {
         return;
       }
+      
+      const target = event.target as Element;
+      
+      // Never close modal if clicking on dropdown-related elements
+      if (target.closest('[data-slot*="dropdown"]')) {
+        return;
+      }
+      
+      // Never close modal if clicking on popover-related elements
+      if (target.closest('[data-slot*="popover"]')) {
+        return;
+      }
+      
+      // Never close modal if clicking on calendar elements
+      if (target.closest('[data-slot="calendar"]')) {
+        return;
+      }
+      
+      // Never close modal if any dropdown or popover is open
+      if (document.querySelector('[data-slot="dropdown-menu-content"]') || 
+          document.querySelector('[data-slot="popover-content"]')) {
+        return;
+      }
+      
+      // Safe to close modal
       callback(event);
     };
 

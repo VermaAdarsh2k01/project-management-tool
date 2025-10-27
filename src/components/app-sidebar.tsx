@@ -33,7 +33,7 @@ export default function AppSidebar() {
     ];
 
     return (
-        <Sidebar>
+        <Sidebar >
             <SidebarHeader className="text-xl font-bold">
                 Linear Clone
             </SidebarHeader>

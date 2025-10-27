@@ -1,4 +1,3 @@
-"use client"
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -47,32 +46,15 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const [isMounted, setIsMounted] = React.useState(false);
-  
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const Comp = asChild ? Slot : "button"
-  const buttonProps = {
-    "data-slot": "button",
-    className: cn(buttonVariants({ variant, size, className })),
-    ...props
-  };
 
-  // On server or before mount, render with minimal props to ensure deterministic output
-  if (!isMounted) {
-    return (
-      <Comp
-        data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
-        aria-hidden="true"
-      />
-    );
-  }
-
-  // After mount, include all dynamic props
-  return <Comp {...buttonProps} />
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
 }
 
 export { Button, buttonVariants }
