@@ -3,7 +3,7 @@
 import { UserButton } from "@clerk/nextjs";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 import { Suspense, useEffect, useState } from "react";
-import { Box, LucideIcon } from 'lucide-react';
+import { Box, Home, LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
 interface SidebarItem {
@@ -21,15 +21,16 @@ export default function AppSidebar() {
 
     const sidebarMenu: SidebarItem[] = [
         {
+            title: "Home",
+            url: "/",
+            icon: Home,
+        },
+        {
             title: "Projects",
             url: "/projects",
             icon: Box,
         },
-        {
-            title: "Home",
-            url: "/",
-            icon: Box,
-        }
+        
     ];
 
     return (
@@ -45,7 +46,7 @@ export default function AppSidebar() {
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton asChild>
                                     <Link href={item.url} className="flex items-center gap-2">
-                                        <item.icon className="h-6 w-6" strokeWidth={0.75} />
+                                        <item.icon className="h-6 w-6" strokeWidth={1.5} />
                                         <span className="text-lg">{item.title}</span>
                                     </Link>
                                 </SidebarMenuButton>

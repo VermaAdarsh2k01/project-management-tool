@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar  from "@/components/app-sidebar";
-
+import { Toaster } from "sonner";
 export default function MainLayout({
   children,
 }: {
@@ -9,8 +9,9 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarTrigger />
-      {children}
+        <SidebarTrigger />
+        {children}  
+      <Toaster />
     </SidebarProvider>
   );
 }

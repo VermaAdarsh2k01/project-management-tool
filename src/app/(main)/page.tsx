@@ -17,7 +17,7 @@ export default async function Home() {
     }
     
     return (
-        <div className="bg-black h-screen w-screen text-white p-8">
+        <div className="bg-[#101012] h-screen w-screen text-white p-8">
         <div className="flex justify-between items-center mb-8">
             
         </div>

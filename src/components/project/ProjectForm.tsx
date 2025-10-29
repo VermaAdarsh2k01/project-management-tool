@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,9 @@ import { format } from 'date-fns'
 import { SignalHigh , SignalMedium, SignalLow } from 'lucide-react'
 import { z } from 'zod'
 import { useModal } from '../ui/animated-modal'
+import { useProjectStore } from '@/store/ProjectStore'
+import { CreateProject } from '@/app/actions/Project'
+import { toast } from 'sonner'
 
 const PriorityIcons = {
   "no-priority": <MoreHorizontal className="w-4 h-4" />,
@@ -21,18 +24,18 @@ const PriorityIcons = {
   "urgent": <AlertTriangle className="w-4 h-4" />,
 }
 
-const SectionColors = {
-  "backlog": "bg-red-400",
-  "todo": "bg-blue-400", 
-  "in-progress": "bg-yellow-400",
-  "done": "bg-green-400",
+const StatusColors = {
+  "BACKLOG": "bg-red-400",
+  "TODO": "bg-blue-400", 
+  "IN_PROGRESS": "bg-yellow-400",
+  "DONE": "bg-green-400",
 }
 
 const projectSchema = z.object({
   projectName: z.string().min(1, "Project name is required").max(100, "Project name must be less than 100 characters"),
   summary: z.string().max(200, "Summary must be less than 200 characters").nullable(),
-  section: z.enum(["backlog", "todo", "in-progress", "done"]),
-  priority: z.enum(["no-priority", "low", "medium", "high", "urgent"]),
+  status: z.enum(["BACKLOG", "TODO", "IN_PROGRESS", "DONE"]),
+  priority: z.enum(["NO_PRIORITY", "LOW", "MEDIUM", "HIGH", "URGENT"]),
   members: z.array(z.string()).nullable(),
   startDate: z.date(),
   targetDate: z.date(),
@@ -44,13 +47,15 @@ const ProjectForm = () => {
   const modal = useModal()
   const [projectName, setProjectName] = useState('')
   const [summary, setSummary] = useState('')
-  const [section, setSection] = useState('backlog')
+  const [status, setStatus] = useState('BACKLOG')
   const [priority, setPriority] = useState('no-priority')
   const [members, setMembers] = useState<string[]>([])
   const [startDate, setStartDate] = useState<Date | undefined>(undefined)
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined)
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isPending , startTrnasition] = useTransition();
+  const {addProject , removeProject , setProjects} = useProjectStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +65,8 @@ const ProjectForm = () => {
     const formData = {
       projectName,
       summary: summary.trim() || null,
-      section,
-      priority,
+      status: status as "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE",
+      priority: priority.toUpperCase().replace("-", "_") as "NO_PRIORITY" | "LOW" | "MEDIUM" | "HIGH" | "URGENT",
       members: members.length > 0 ? members : null,
       startDate: startDate || currentDate,
       targetDate: targetDate || currentDate,
@@ -69,9 +74,45 @@ const ProjectForm = () => {
     }
 
     try {
-      const validatedData = projectSchema.parse(formData)
-      console.log('Valid form data:', validatedData)
-      // Here you would typically submit the data to your API
+      const validated = projectSchema.parse(formData)
+      
+      
+      const tempId = 'temp' + Math.random().toString();
+      //Random Temp Project for Zustand
+      addProject({
+        id: tempId,
+        name: validated.projectName,
+        summary: validated.summary,
+        status: validated.status as "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE",
+        priority: validated.priority as "NO_PRIORITY" | "LOW" | "MEDIUM" | "HIGH" | "URGENT",
+        members: validated.members,
+        startDate: validated.startDate,
+        targetDate: validated.targetDate,
+      })
+
+      startTrnasition( async () => {
+        try{
+          const newProject = await CreateProject({
+            name: validated.projectName,
+            summary: validated.summary,
+            status: validated.status.toUpperCase() as "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE",
+            priority: validated.priority.toUpperCase().replace("-", "_") as "NO_PRIORITY" | "LOW" | "MEDIUM" | "HIGH" | "URGENT",
+            members: validated.members,
+            startDate: validated.startDate,
+            targetDate: validated.targetDate,
+          })
+          
+          removeProject(tempId);
+          addProject({...newProject});
+          modal.setOpen(false);
+          toast.success("Project created successfully");  
+        } catch (err) {
+          console.error("❌ Error creating project:", err);
+          removeProject(tempId); 
+        }
+      })
+
+
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -89,7 +130,7 @@ const ProjectForm = () => {
     modal.setOpen(false)
     setProjectName('')
     setSummary('')
-    setSection('backlog')
+    setStatus('BACKLOG')
     setPriority('no-priority')
     setMembers([])
     setStartDate(undefined)
@@ -149,25 +190,25 @@ const ProjectForm = () => {
                 type="button"
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                <div className={`w-2 h-2 rounded-full ${SectionColors[section as keyof typeof SectionColors]}`}></div>
-                <span className="font-medium">{section === 'backlog' ? 'Backlog' : section === 'todo' ? 'To Do' : section === 'in-progress' ? 'In Progress' : 'Done'}</span>
+                <div className={`w-2 h-2 rounded-full ${StatusColors[status as keyof typeof StatusColors]}`}></div>
+                <span className="font-medium">{status === 'BACKLOG' ? 'Backlog' : status === 'TODO' ? 'To Do' : status === 'IN_PROGRESS' ? 'In Progress' : 'Done'}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSection('backlog'); }}>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatus('BACKLOG'); }}>
                 <div className="w-2 h-2 rounded-full bg-red-400 mr-2"></div>
                 Backlog
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSection('todo'); }}>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatus('TODO'); }}>
                 <div className="w-2 h-2 rounded-full bg-blue-400 mr-2"></div>
                 To Do
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSection('in-progress'); }}>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatus('IN_PROGRESS'); }}>
                 <div className="w-2 h-2 rounded-full bg-yellow-400 mr-2"></div>
                 In Progress
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSection('done'); }}>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatus('DONE'); }}>
                 <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
                 Done
               </DropdownMenuItem>
