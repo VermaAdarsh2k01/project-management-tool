@@ -91,6 +91,7 @@ export async function GetProjectById(projectId: string) {
           user: true
         }
       },
+      tasks: true,
     }
   })
 

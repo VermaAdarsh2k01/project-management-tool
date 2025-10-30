@@ -149,16 +149,8 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
         })
         
         // Update with real data from server
-        setProject(updatedProject)
-        updateProject(project.id, {
-          name: updatedProject.name,
-          summary: updatedProject.summary,
-          status: updatedProject.status,
-          priority: updatedProject.priority,
-          startDate: updatedProject.startDate,
-          targetDate: updatedProject.targetDate,
-          description: updatedProject.description,
-        })
+        setProject(updatedProject)  
+        updateProject(project.id, updatedProject)
         
         toast.success('Project updated successfully')
       } catch (error) {
@@ -166,15 +158,7 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
         
         // Rollback optimistic updates on error
         setProject(originalProject)
-        updateProject(project.id, {
-          name: originalProject.name,
-          summary: originalProject.summary,
-          status: originalProject.status,
-          priority: originalProject.priority,
-          startDate: originalProject.startDate,
-          targetDate: originalProject.targetDate,
-          description: originalProject.description,
-        })
+        updateProject(project.id, originalProject)
         
         // Reset edit state to original values
         setEditName(originalProject.name)
