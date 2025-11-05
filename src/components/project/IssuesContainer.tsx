@@ -1,14 +1,14 @@
 "use client"
 
 import { getTasksByProjectId } from '@/app/actions/Task'
-import React, { useEffect, useState, useTransition } from 'react'
+import React, { useEffect, useTransition } from 'react'
 import TaskNavbarContainer from './TaskNavbarContainer'
 import TaskLists from './TaskLists'
-import { useTaskStore, Task } from '@/store/TaskStore'
+import { useTaskStore } from '@/store/TaskStore'
 
 const IssuesContainer = ({projectId}: {projectId: string}) => {
-  const { tasks, setTasks } = useTaskStore()
-  const [isPending, startTransition] = useTransition()
+  const { setTasks } = useTaskStore()
+  const [, startTransition] = useTransition()
   
   useEffect(() => {
     startTransition(async () => {

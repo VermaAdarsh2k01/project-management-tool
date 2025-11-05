@@ -4,10 +4,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Priority, Status } from "@/generated/prisma/client";
 import { MoreHorizontal, SignalHigh, SignalMedium, SignalLow, AlertTriangle , Box } from 'lucide-react';
 
-interface Lead {
-    image:string,
-    name:string,
-}
 
 export type ProjectData = {
     id:string,

@@ -58,6 +58,16 @@ model Task {
   project     Project   @relation(fields: [projectId], references: [id])
 }
 
+model Invitation {
+  id          String   @id @default(cuid())
+  email       String
+  token       String   @unique
+  role        Role     @default(VIEWER)
+  accepted    Boolean  @default(false)
+  projectId   String
+  createdAt   DateTime @default(now())  
+}
+
 enum Role {
   ADMIN
   EDITOR

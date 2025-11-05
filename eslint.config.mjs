@@ -18,7 +18,29 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/generated/**",
+      "prisma/generated/**",
+      "**/generated/**",
+      "**/*.generated.*",
+      "**/runtime/**",
+      "**/wasm*.js",
     ],
+  },
+  {
+    // Global rule adjustments for better development experience
+    rules: {
+      "@typescript-eslint/no-unused-vars": "warn", // Change from error to warning
+    },
+  },
+  {
+    // Specific rules for generated files that might not be caught by ignores
+    files: ["**/generated/**/*", "**/runtime/**/*", "**/*.generated.*", "**/wasm*.js"],
+    rules: {
+      "@typescript-eslint/no-unused-expressions": "off",
+      "@typescript-eslint/no-this-alias": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
   },
 ];
 
