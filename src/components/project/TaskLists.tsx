@@ -1,8 +1,146 @@
+"use client"
+
+import { Task } from '@/store/TaskStore'
+import { CircleCheck, CircleDashed, CircleDot, Loader } from 'lucide-react'
+import TaskCard from './TaskCard'
+import { useTaskStore } from '@/store/TaskStore'
+import { DndContext, DragEndEvent, DragStartEvent, useDroppable, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { Status } from '@/generated/prisma'
+import { useState } from 'react'
+import { updateTask as updateTaskAction } from '@/app/actions/Task'
+import { useTransition } from 'react'
+import { toast } from 'sonner'
+
+
+const DroppableColumn = ({ column, children }: { column: string, children: React.ReactNode }) => {
+    const { setNodeRef } = useDroppable({
+        id: column,
+    });
+
+    return (
+        <div ref={setNodeRef} className='col-span-1 h-full overflow-hidden'>
+            <div className='w-full h-full bg-neutral-800/50 rounded-lg'>
+                {children}
+            </div>
+        </div>
+    );
+};
 
 const TaskLists = () => {
-  return (
-    <div>TaskLists</div>
-  )
+    const Columns = ["Backlog", "Todo", "In Progress", "Done"];
+    const { tasks, updateTask } = useTaskStore();
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
+    const [isPending, startTransition] = useTransition();
+
+   
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, 
+            },
+        })
+    );
+
+    const StatusIcons = {
+        "Backlog": <CircleDashed color="#ffffff" size={15} />,
+        "Todo": <Loader color="#2f58fe" size={15} />,
+        "In Progress": <CircleDot color="#ffef42" size={15} />,
+        "Done": <CircleCheck color="#4dfe50" size={15} />,
+    }
+
+    const StatusMapping = {
+        "Backlog": "BACKLOG",
+        "Todo": "TODO",
+        "In Progress": "IN_PROGRESS",
+        "Done": "DONE",
+    }
+
+    const getTasksForColumn = (column: string) => {
+        const status = StatusMapping[column as keyof typeof StatusMapping];
+        return tasks.filter((task) => task.status === status);
+    };
+
+    const handleTaskClick = (task: Task) => {
+        // You can implement task detail modal or navigation here
+    }
+
+    const handleDragStart = (event: DragStartEvent) => {
+        const { active } = event;
+        const taskId = active.id as string;
+        const task = tasks.find(t => t.id === taskId);
+        setActiveTask(task || null);
+    }
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over) {
+            setActiveTask(null);
+            return;
+        }
+
+        const taskId = active.id as string;
+        const newColumnName = over.id as string;
+        
+
+        const newStatus = StatusMapping[newColumnName as keyof typeof StatusMapping] as Status;
+        
+
+        const task = tasks.find(t => t.id === taskId);
+        
+        if (task && task.status !== newStatus) {
+            const previousStatus = task.status;
+            
+            updateTask(taskId, { status: newStatus });
+            
+            startTransition(async () => {
+                try {
+                    await updateTaskAction(taskId, { status: newStatus });
+                    toast.success("Task updated successfully");
+                } catch (error) {
+                    // Revert optimistic update on error
+                    updateTask(taskId, { status: previousStatus });
+                    console.error("Error updating task:", error);
+                    toast.error("Failed to update task");
+                }
+            });
+        }
+        
+        setActiveTask(null);
+    }
+
+    return (
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <div className='w-full h-full grid grid-cols-1 md:grid-cols-4 gap-2 p-1 '>
+                {Columns.map((column) => {
+                    return (
+                        <DroppableColumn key={column} column={column}>
+                            <div className='flex items-center justify-start gap-2 w-full h-fit p-3'>
+                                {StatusIcons[column as keyof typeof StatusIcons] as React.ReactNode}
+                                <h2 className='text-base'>{column}</h2>
+                            </div>
+                            <div className='px-3 pb-3 max-h-[calc(100vh-200px)] overflow-y-auto'>
+                                {getTasksForColumn(column).map((task) => (
+                                    <TaskCard
+                                        key={task.id}
+                                        task={task}
+                                        onClick={handleTaskClick}
+                                    />
+                                ))}
+                            </div>
+                        </DroppableColumn>
+                    )
+                })}
+            </div>
+            <DragOverlay>
+                {activeTask ? (
+                    <div className="rotate-3 transform">
+                        <TaskCard task={activeTask} />
+                    </div>
+                ) : null}
+            </DragOverlay>
+        </DndContext>
+    )
 }
 
 export default TaskLists

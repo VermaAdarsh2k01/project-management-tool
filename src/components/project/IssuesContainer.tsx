@@ -1,22 +1,29 @@
+"use client"
 
-import { createTask } from '@/app/actions/Task'
-import { Priority, Status } from '@/generated/prisma';
-import React, { useState, useTransition } from 'react'
-import { useTaskStore } from '@/store/TaskStore'
-import { toast } from 'sonner';
+import { getTasksByProjectId } from '@/app/actions/Task'
+import React, { useEffect, useState, useTransition } from 'react'
 import TaskNavbarContainer from './TaskNavbarContainer'
-
+import TaskLists from './TaskLists'
+import { useTaskStore, Task } from '@/store/TaskStore'
 
 const IssuesContainer = ({projectId}: {projectId: string}) => {
+  const { tasks, setTasks } = useTaskStore()
+  const [isPending, startTransition] = useTransition()
   
+  useEffect(() => {
+    startTransition(async () => {
+      const taskData = await getTasksByProjectId(projectId)
+      setTasks(taskData)
+    })
+  }, [projectId, setTasks])
 
   return (
-    <div className='w-full h-full flex items-center justify-center'>
-        <div className='h-12 w-full flex items-center px-2'>
+    <div className='w-full h-full flex flex-col'>
+        <div className='h-12 w-full flex items-center px-2 ' >
             <TaskNavbarContainer projectId={projectId} />
         </div>
-        <div>
-          
+        <div className='w-full xl:min-h-[80vh] flex-1 rounded-lg bg-neutral-900/80 mt-2 '>
+          <TaskLists  />
         </div>
     </div>
   );

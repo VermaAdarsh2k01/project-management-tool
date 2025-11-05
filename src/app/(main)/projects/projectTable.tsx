@@ -15,8 +15,7 @@ export default  function ProjectTable(){
         const projectData = await GetProjects();
         setProjects(projectData);
       });
-    }, [setProjects]);
-
+    }, []); 
     
 
     return(
