@@ -2,10 +2,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { acceptInvitation } from "@/app/actions/Invite";
-export default async function InvitePage({ searchParams }: { searchParams: { token?: string } }) {
-  const { token } = searchParams;
+export default async function InvitePage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
+  const { token } = await searchParams;
   const { userId } = await auth();
 
   if (!token) return <p>Invalid invitation link.</p>;
