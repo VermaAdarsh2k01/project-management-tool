@@ -206,6 +206,10 @@ const config = {
         "fromEnvVar": null,
         "value": "windows",
         "native": true
+      },
+      {
+        "fromEnvVar": null,
+        "value": "rhel-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -232,8 +236,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String       @id\n  email         String       @unique\n  name          String?\n  createdAt     DateTime     @default(now())\n  memberships   Membership[]\n  ownedProjects Project[]    @relation(\"UserOwnedProjects\")\n}\n\nmodel Project {\n  id          String       @id @default(uuid())\n  name        String\n  summary     String?\n  description String?\n  status      Status       @default(BACKLOG)\n  priority    Priority     @default(NO_PRIORITY)\n  startDate   DateTime?\n  targetDate  DateTime?\n  ownerId     String\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  memberships Membership[]\n  tasks       Task[]\n  owner       User         @relation(\"UserOwnedProjects\", fields: [ownerId], references: [id])\n}\n\nmodel Membership {\n  id        String  @id @default(cuid())\n  role      Role    @default(VIEWER)\n  userId    String\n  projectId String\n  project   Project @relation(fields: [projectId], references: [id])\n  user      User    @relation(fields: [userId], references: [id])\n\n  @@unique([userId, projectId])\n}\n\nmodel Task {\n  id          String    @id @default(cuid())\n  title       String\n  description String?\n  status      Status    @default(BACKLOG)\n  priority    Priority  @default(NO_PRIORITY)\n  dueDate     DateTime?\n  createdAt   DateTime  @default(now())\n  projectId   String\n  project     Project   @relation(fields: [projectId], references: [id])\n}\n\nmodel Invitation {\n  id        String   @id @default(cuid())\n  email     String\n  token     String   @unique\n  role      Role     @default(VIEWER)\n  accepted  Boolean  @default(false)\n  projectId String\n  createdAt DateTime @default(now())\n}\n\nenum Role {\n  ADMIN\n  EDITOR\n  VIEWER\n}\n\nenum Priority {\n  NO_PRIORITY\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n}\n\nenum Status {\n  BACKLOG\n  TODO\n  IN_PROGRESS\n  DONE\n}\n",
-  "inlineSchemaHash": "9bf2c29e8cabdf9f02bf828eb82569ab22ce6c51d6096d45152c2b34e75e8983",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../src/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String       @id\n  email         String       @unique\n  name          String?\n  createdAt     DateTime     @default(now())\n  memberships   Membership[]\n  ownedProjects Project[]    @relation(\"UserOwnedProjects\")\n}\n\nmodel Project {\n  id          String       @id @default(uuid())\n  name        String\n  summary     String?\n  description String?\n  status      Status       @default(BACKLOG)\n  priority    Priority     @default(NO_PRIORITY)\n  startDate   DateTime?\n  targetDate  DateTime?\n  ownerId     String\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  memberships Membership[]\n  tasks       Task[]\n  owner       User         @relation(\"UserOwnedProjects\", fields: [ownerId], references: [id])\n}\n\nmodel Membership {\n  id        String  @id @default(cuid())\n  role      Role    @default(VIEWER)\n  userId    String\n  projectId String\n  project   Project @relation(fields: [projectId], references: [id])\n  user      User    @relation(fields: [userId], references: [id])\n\n  @@unique([userId, projectId])\n}\n\nmodel Task {\n  id          String    @id @default(cuid())\n  title       String\n  description String?\n  status      Status    @default(BACKLOG)\n  priority    Priority  @default(NO_PRIORITY)\n  dueDate     DateTime?\n  createdAt   DateTime  @default(now())\n  projectId   String\n  project     Project   @relation(fields: [projectId], references: [id])\n}\n\nmodel Invitation {\n  id        String   @id @default(cuid())\n  email     String\n  token     String   @unique\n  role      Role     @default(VIEWER)\n  accepted  Boolean  @default(false)\n  projectId String\n  createdAt DateTime @default(now())\n}\n\nenum Role {\n  ADMIN\n  EDITOR\n  VIEWER\n}\n\nenum Priority {\n  NO_PRIORITY\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n}\n\nenum Status {\n  BACKLOG\n  TODO\n  IN_PROGRESS\n  DONE\n}\n",
+  "inlineSchemaHash": "f220afc4d0cdfc465fa66f2fc1ed2cac9e981913af588bb8e7930bb1211d409c",
   "copyEngine": true
 }
 
@@ -274,6 +278,10 @@ Object.assign(exports, Prisma)
 // file annotations for bundling tools to include these files
 path.join(__dirname, "query_engine-windows.dll.node");
 path.join(process.cwd(), "src/generated/prisma/query_engine-windows.dll.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
+path.join(process.cwd(), "src/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "src/generated/prisma/schema.prisma")

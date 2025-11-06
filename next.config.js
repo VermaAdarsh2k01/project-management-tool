@@ -1,11 +1,11 @@
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ['@prisma/client'],
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push({
-        '@prisma/client': 'commonjs @prisma/client'
-      })
+      config.plugins = [...(config.plugins || []), new PrismaPlugin()]
     }
     return config
   }
