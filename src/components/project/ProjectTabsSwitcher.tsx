@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import { TabsTrigger } from '../ui/tabs'
-import { FileTextIcon, Layers2 } from 'lucide-react'
+import { FileTextIcon, Layers2, Users } from 'lucide-react'
 
 const ProjectTabsSwitcher = () => {
   const [isActive, setIsActive] = useState("overview")
@@ -23,6 +23,14 @@ const ProjectTabsSwitcher = () => {
         >
             <Layers2 className='w-4 h-4' />
             <p>Issues</p>
+        </TabsTrigger>
+        <TabsTrigger
+            value="members"
+            className={`${isActive === "members" ? "bg-neutral-800 border border-neutral-700 text-white" : "hover:bg-neutral-700"} flex items-center gap-2 rounded-lg px-3 transition-all duration-300 border-transparent`}
+            onClick={() => setIsActive("members")}
+        >
+            <Users className='w-4 h-4' />
+            <p>Members</p>
         </TabsTrigger>
     </div>
     </>

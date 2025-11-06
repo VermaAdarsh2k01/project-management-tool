@@ -4,10 +4,11 @@ import { Tabs, TabsContent, TabsList } from '@radix-ui/react-tabs'
 import React, { useState } from 'react'
 import OverviewSection from './OverviewSection'
 import { BoxIcon } from 'lucide-react'
-import { Priority, Status } from '@/generated/prisma/client'
+import { Priority, Status, Role } from '@/generated/prisma/client'
 import { FileTextIcon , Layers2 } from 'lucide-react'
 import IssuesContainer from './IssuesContainer'
 import ProjectTabsSwitcher from './ProjectTabsSwitcher'
+import MembersContainer from './MembersContainer'
 
 interface ProjectData {
     id: string
@@ -18,12 +19,20 @@ interface ProjectData {
     priority: Priority
     startDate: Date | null
     targetDate: Date | null
+    ownerId: string
+    createdAt: Date
+    updatedAt: Date
     currentUserRole: string
     memberships: Array<{
+        id: string
+        userId: string
+        projectId: string
+        role: Role
         user: {
             id: string
             name: string | null
             email: string
+            createdAt: Date
         }
     }>
 }
@@ -54,6 +63,9 @@ const ProjectTabsClient = ({ project }: ProjectTabsClientProps) => {
                 </TabsContent>
                 <TabsContent value="issues">
                     <IssuesContainer projectId={projectId} />
+                </TabsContent>
+                <TabsContent value = "members">
+                    <MembersContainer project={project} />
                 </TabsContent>
             </Tabs>
         </div>
