@@ -1,14 +1,9 @@
 "use server"
 
 import { Role } from "@/generated/prisma"
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend"
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { currentUser } from "@clerk/nextjs/server"
-
-const mailerSend = new MailerSend({
-    apiKey: process.env.MAILERSEND_API_KEY || '',
-})
 export async function sendInvitation( email: string, role: Role, projectId: string)  {
     const user = await currentUser();
     
@@ -40,55 +35,62 @@ export async function sendInvitation( email: string, role: Role, projectId: stri
     });
 
     if (existingInvitation) {
-        throw new Error("An invitation has already been sent to this email for this project");
+        // Check if the invitation is older than 5 minutes (likely a failed send)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        if (existingInvitation.createdAt < fiveMinutesAgo) {
+            // Delete the old invitation and create a new one
+            await prisma.invitation.delete({
+                where: { id: existingInvitation.id }
+            });
+        } else {
+            throw new Error("An invitation has already been sent to this email for this project");
+        }
     }
 
     const senderEmail = user.emailAddresses[0].emailAddress;
     const senderName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Project Manager";
 
     const token = randomUUID();
+    const invitationURL = `${process.env.NEXT_PUBLIC_APP_URL}/invite?token=${token}`;
 
-    await prisma.invitation.create({
-        data:{
+    // Return data for EmailJS to handle on the client side
+    // We'll create the invitation record after email is sent successfully
+    return { 
+        success: true, 
+        invitationData: {
             email,
             projectId, 
             token,
             role,
+        },
+        emailData: {
+            to_name: email,  // This goes to the "To Email" field in your template
+            from_name: senderName,
+            message: `Hello,
+
+${senderName} has invited you to join a project with the role of ${role.toLowerCase()}.
+
+Click here to accept the invitation: ${invitationURL}
+
+If you can't click the link, copy and paste this URL into your browser:
+${invitationURL}
+
+Best regards,
+Project Management Team`,
+            reply_to: senderEmail
         }
+    };
+}
+
+export async function createInvitationRecord(invitationData: {
+    email: string;
+    projectId: string;
+    token: string;
+    role: Role;
+}) {
+    await prisma.invitation.create({
+        data: invitationData
     });
-
-    const invitationURL = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
-
-    const sentFrom = new Sender(senderEmail, senderName);
-    const recipients = [new Recipient(email, "Project Member")];
-
-    const emailParams = new EmailParams()
-        .setFrom(sentFrom)
-        .setTo(recipients)
-        .setSubject(`${senderName} invited you to join a project`)
-        .setHtml(`
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #333;">You're invited to join a project!</h2>
-                <p>Hi there,</p>
-                <p><strong>${senderName}</strong> (${senderEmail}) has invited you to join a project with the role of <strong>${role.toLowerCase()}</strong>.</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${invitationURL}" 
-                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Accept Invitation
-                    </a>
-                </div>
-                <p style="color: #666; font-size: 14px;">
-                    If you can't click the button, copy and paste this link into your browser:<br>
-                    <a href="${invitationURL}">${invitationURL}</a>
-                </p>
-                <p style="color: #666; font-size: 12px; margin-top: 30px;">
-                    This invitation was sent from our Project Management Tool. If you didn't expect this invitation, you can safely ignore this email.
-                </p>
-            </div>
-        `);
-
-    await mailerSend.email.send(emailParams);
-
     return { success: true };
 }
 

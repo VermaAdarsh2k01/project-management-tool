@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,8 +13,9 @@ import {
 import { Role } from '@/generated/prisma/client'
 import { useModal } from '../ui/animated-modal'
 import { ChevronDown, Crown, Edit, Eye } from 'lucide-react'
-import { sendInvitation } from '@/app/actions/Invite'
 import { toast } from 'sonner'
+import emailjs from '@emailjs/browser'
+import { sendInvitation, createInvitationRecord } from '@/app/actions/Invite'
 
 const RoleIcons = {
   "ADMIN": <Crown className="w-4 h-4 text-yellow-600" />,
@@ -34,13 +35,52 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
   const [isLoading, setIsLoading] = useState(false)
   const modal = useModal()
 
+  // Initialize EmailJS
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
+      emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY);
+      console.log('EmailJS initialized with public key:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY?.substring(0, 10) + '...');
+    } else {
+      console.error('NEXT_PUBLIC_EMAILJS_PUBLIC_KEY is missing');
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     
     try {
-      await sendInvitation(email, role, projectId)
+      // First, prepare invitation data (but don't create DB record yet)
+      const result = await sendInvitation(email, role, projectId);
+
+      if (!result.success) {
+        throw new Error('Failed to process invitation');
+      }
+
+      // Debug: Check environment variables
+      console.log('EmailJS Config:', {
+        serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY?.substring(0, 10) + '...'
+      });
+
+      console.log('Email data being sent:', result.emailData);
+
+      // Send email using EmailJS first
+      const emailResult = await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        result.emailData,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      );
+
+      console.log('Email sent successfully:', emailResult);
+
+      // Only create invitation record after email is sent successfully
+      await createInvitationRecord(result.invitationData);
+
       toast.success('Invitation sent successfully')
+      
       // Close modal on success
       modal.setOpen(false)
       
@@ -48,7 +88,6 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
       setEmail('')
       setRole('VIEWER')
     } catch (error) {
-      console.error('Error inviting member:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation'
       toast.error(errorMessage)
     } finally {
