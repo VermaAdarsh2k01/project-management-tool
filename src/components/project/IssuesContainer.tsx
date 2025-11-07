@@ -6,7 +6,11 @@ import TaskNavbarContainer from './TaskNavbarContainer'
 import TaskLists from './TaskLists'
 import { useTaskStore } from '@/store/TaskStore'
 
-const IssuesContainer = ({projectId}: {projectId: string}) => {
+interface IssuesContainerProps {
+  projectId: string;
+  currentUserRole: string;
+}
+const IssuesContainer = ({projectId, currentUserRole}: IssuesContainerProps) => {
   const { setTasks } = useTaskStore()
   const [, startTransition] = useTransition()
   
@@ -17,13 +21,15 @@ const IssuesContainer = ({projectId}: {projectId: string}) => {
     })
   }, [projectId, setTasks])
 
+  const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
+
   return (
     <div className='w-full h-full flex flex-col'>
         <div className='h-12 w-full flex items-center px-2 ' >
-            <TaskNavbarContainer projectId={projectId} />
+            {canEdit && <TaskNavbarContainer projectId={projectId} />}
         </div>
         <div className='w-full xl:min-h-[80vh] flex-1 rounded-lg bg-neutral-900/80 mt-2 '>
-          <TaskLists  />
+          <TaskLists  canEdit={canEdit}/>
         </div>
     </div>
   );

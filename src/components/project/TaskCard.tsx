@@ -9,7 +9,8 @@ import { CSS } from '@dnd-kit/utilities'
 
 interface TaskCardProps {
   task: Task
-  onClick?: (task: Task) => void
+  onClick?: (task: Task) => void,
+  canDrag?: boolean
 }
 
 const PriorityIcons = {
@@ -21,7 +22,7 @@ const PriorityIcons = {
 }
 
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onClick , canDrag }) => {
   const {
     attributes,
     listeners,
@@ -30,6 +31,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
     isDragging,
   } = useDraggable({
     id: task.id,
+    disabled: !canDrag,
   });
 
   const style = {
@@ -46,12 +48,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`w-full bg-neutral-700/50 hover:bg-neutral-600/50 rounded-md cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] p-3 mb-2 ${
+      className={`w-full bg-neutral-700/50 hover:bg-neutral-600/50 rounded-md transition-all duration-200 hover:shadow-md hover:scale-[1.02] p-3 mb-2 ${
         isDragging ? 'opacity-0' : ''
-      }`}
+      } ${canDrag ? 'cursor-pointer' : 'cursor-default'}`}
       onClick={handleClick}
-      {...listeners}
-      {...attributes}
+      {...(canDrag ? listeners : {})} 
+      {...(canDrag ? attributes : {})} 
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">

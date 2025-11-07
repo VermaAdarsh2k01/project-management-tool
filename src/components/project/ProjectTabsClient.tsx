@@ -42,7 +42,7 @@ interface ProjectTabsClientProps {
 }
 
 const ProjectTabsClient = ({ project }: ProjectTabsClientProps) => {
-    const {id: projectId} = project
+    const {id: projectId , currentUserRole} = project
     const [isActive, setIsActive] = useState("overview")
 
     return (
@@ -62,7 +62,7 @@ const ProjectTabsClient = ({ project }: ProjectTabsClientProps) => {
                     <OverviewSection project={project}/>
                 </TabsContent>
                 <TabsContent value="issues">
-                    <IssuesContainer projectId={projectId} />
+                    <IssuesContainer projectId={projectId} currentUserRole={currentUserRole} />
                 </TabsContent>
                 <TabsContent value = "members">
                     <MembersContainer project={project} />

@@ -26,7 +26,7 @@ const DroppableColumn = ({ column, children }: { column: string, children: React
     );
 };
 
-const TaskLists = () => {
+const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
     const Columns = ["Backlog", "Todo", "In Progress", "Done"];
     const { tasks, updateTask } = useTaskStore();
     const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -65,6 +65,9 @@ const TaskLists = () => {
     }
 
     const handleDragStart = (event: DragStartEvent) => {
+
+        if (!canEdit)   return;
+        
         const { active } = event;
         const taskId = active.id as string;
         const task = tasks.find(t => t.id === taskId);
@@ -72,6 +75,9 @@ const TaskLists = () => {
     }
 
     const handleDragEnd = (event: DragEndEvent) => {
+        
+        if (!canEdit)   return;
+        
         const { active, over } = event;
 
         if (!over) {
@@ -109,38 +115,50 @@ const TaskLists = () => {
         setActiveTask(null);
     }
 
-    return (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className='w-full h-full grid grid-cols-1 md:grid-cols-4 gap-2 p-1 '>
-                {Columns.map((column) => {
-                    return (
-                        <DroppableColumn key={column} column={column}>
-                            <div className='flex items-center justify-start gap-2 w-full h-fit p-3'>
-                                {StatusIcons[column as keyof typeof StatusIcons] as React.ReactNode}
-                                <h2 className='text-base'>{column}</h2>
-                            </div>
-                            <div className='px-3 pb-3 max-h-[calc(100vh-200px)] overflow-y-auto'>
-                                {getTasksForColumn(column).map((task) => (
-                                    <TaskCard
-                                        key={task.id}
-                                        task={task}
-                                        onClick={handleTaskClick}
-                                    />
-                                ))}
-                            </div>
-                        </DroppableColumn>
-                    )
-                })}
-            </div>
-            <DragOverlay>
-                {activeTask ? (
-                    <div className="rotate-3 transform">
-                        <TaskCard task={activeTask} />
-                    </div>
-                ) : null}
-            </DragOverlay>
-        </DndContext>
-    )
+    // Conditionally wrap with DndContext based on permissions
+    const content = (
+        <div className='w-full h-full grid grid-cols-1 md:grid-cols-4 gap-2 p-1 '>
+            {Columns.map((column) => {
+                return (
+                    <DroppableColumn key={column} column={column}>
+                        <div className='flex items-center justify-start gap-2 w-full h-fit p-3'>
+                            {StatusIcons[column as keyof typeof StatusIcons] as React.ReactNode}
+                            <h2 className='text-base'>{column}</h2>
+                        </div>
+                        <div className='px-3 pb-3 max-h-[calc(100vh-200px)] overflow-y-auto'>
+                            {getTasksForColumn(column).map((task) => (
+                                <TaskCard
+                                    key={task.id}
+                                    task={task}
+                                    onClick={handleTaskClick}
+                                    canDrag={canEdit} // Pass drag permission to TaskCard
+                                />
+                            ))}
+                        </div>
+                    </DroppableColumn>
+                )
+            })}
+        </div>
+    );
+
+    // Only enable DndContext if user can edit
+    if (canEdit) {
+        return (
+            <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                {content}
+                <DragOverlay>
+                    {activeTask ? (
+                        <div className="rotate-3 transform">
+                            <TaskCard task={activeTask} canDrag={true} />
+                        </div>
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
+        );
+    }
+
+    // Return content without drag functionality for viewers
+    return content;
 }
 
 export default TaskLists
