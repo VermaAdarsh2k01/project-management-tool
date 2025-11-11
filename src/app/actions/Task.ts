@@ -1,5 +1,5 @@
 "use server"
-import { Priority, Status } from "@/generated/prisma";
+import { Priority, Status } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { currentUser } from "@clerk/nextjs/server";

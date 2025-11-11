@@ -1,4 +1,4 @@
-import { Priority, Status } from "@/generated/prisma";
+import { Priority, Status } from "@prisma/client";
 import { create } from "zustand";
 
 export type Task = {

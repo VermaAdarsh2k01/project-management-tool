@@ -5,7 +5,7 @@ import { Package, MoreHorizontal, Users, CalendarIcon, AlertTriangle, Edit2, Che
 import { SignalHigh, SignalMedium, SignalLow } from 'lucide-react'
 import { format } from 'date-fns'
 import { UpdateProject } from '@/app/actions/Project'
-import { Priority, Status } from '@/generated/prisma/client'
+import { Priority, Status } from '@prisma/client'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'

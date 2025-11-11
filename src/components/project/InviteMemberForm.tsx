@@ -10,7 +10,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
-import { Role } from '@/generated/prisma/client'
+import { Role } from '@prisma/client'
 import { useModal } from '../ui/animated-modal'
 import { ChevronDown, Crown, Edit, Eye } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,9 +39,8 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
       emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY);
-      console.log('EmailJS initialized with public key:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY?.substring(0, 10) + '...');
     } else {
-      console.error('NEXT_PUBLIC_EMAILJS_PUBLIC_KEY is missing');
+      toast.error('EmailJS public key is missing');
     }
   }, []);
 
@@ -57,15 +56,6 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
         throw new Error('Failed to process invitation');
       }
 
-      // Debug: Check environment variables
-      console.log('EmailJS Config:', {
-        serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-        publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY?.substring(0, 10) + '...'
-      });
-
-      console.log('Email data being sent:', result.emailData);
-
       // Send email using EmailJS first
       const emailResult = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
@@ -73,8 +63,6 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
         result.emailData,
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
-
-      console.log('Email sent successfully:', emailResult);
 
       // Only create invitation record after email is sent successfully
       await createInvitationRecord(result.invitationData);

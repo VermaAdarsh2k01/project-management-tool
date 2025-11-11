@@ -42,11 +42,9 @@ export default async function InvitePage({
   const loggedEmail = user?.emailAddresses?.[0]?.emailAddress.toLowerCase() ?? "";
 
   if (invitedEmail !== loggedEmail) {
-    // wrong user logged in → auto sign out client-side
     return <AutoSignOut invitedEmail={invitedEmail} redirectUrl={`/invite?token=${token}`} />;
   }
 
-  // ✅ Correct user — process invitation
   try {
     const res = await acceptInvitation(token, userId);
     if (res.success) redirect(`/projects/`);

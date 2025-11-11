@@ -1,6 +1,6 @@
 "use server"
 
-import { Role } from "@/generated/prisma"
+import { Role } from "@prisma/client"
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { currentUser } from "@clerk/nextjs/server"
@@ -11,13 +11,11 @@ export async function sendInvitation( email: string, role: Role, projectId: stri
         throw new Error("User not authenticated or no email found");
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         throw new Error("Invalid email format");
     }
 
-    // Check if user is already a member or has pending invitation
     const existingMember = await prisma.membership.findUnique({
         where: { userId_projectId: { userId: user.id, projectId } }
     });
@@ -35,10 +33,8 @@ export async function sendInvitation( email: string, role: Role, projectId: stri
     });
 
     if (existingInvitation) {
-        // Check if the invitation is older than 5 minutes (likely a failed send)
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         if (existingInvitation.createdAt < fiveMinutesAgo) {
-            // Delete the old invitation and create a new one
             await prisma.invitation.delete({
                 where: { id: existingInvitation.id }
             });
@@ -53,8 +49,6 @@ export async function sendInvitation( email: string, role: Role, projectId: stri
     const token = randomUUID();
     const invitationURL = `${process.env.NEXT_PUBLIC_APP_URL}/invite?token=${token}`;
 
-    // Return data for EmailJS to handle on the client side
-    // We'll create the invitation record after email is sent successfully
     return { 
         success: true, 
         invitationData: {
@@ -64,7 +58,7 @@ export async function sendInvitation( email: string, role: Role, projectId: stri
             role,
         },
         emailData: {
-            to_name: email,  // This goes to the "To Email" field in your template
+            to_name: email,  
             from_name: senderName,
             message: `Hello,
 
@@ -101,26 +95,22 @@ export async function acceptInvitation(token: string , userId: string) {
     
     if( invite.accepted ) return { success: false, error: "Invitation has already been accepted" };
 
-    // Check if user is already a member
     const existingMembership = await prisma.membership.findUnique({
         where: { userId_projectId: { userId, projectId: invite.projectId } }
     });
 
     if (existingMembership) {
-        // Mark invitation as accepted even if user is already a member
         await prisma.invitation.update({
             where: { token }, data: { accepted: true }
         });
         return { success: true, projectId: invite.projectId };
     }
 
-    // Get current user to ensure email matches
     const user = await currentUser();
     if (!user || !user.emailAddresses.some(emailAddr => emailAddr.emailAddress === invite.email)) {
         return { success: false, error: "This invitation is for a different email address" };
     }
 
-    // Create user record if it doesn't exist
     await prisma.user.upsert({
         where: { id: userId },
         update: {
@@ -134,7 +124,6 @@ export async function acceptInvitation(token: string , userId: string) {
         },
     });
 
-    // Create membership
     await prisma.membership.create({
         data: { 
             userId, 
@@ -143,7 +132,7 @@ export async function acceptInvitation(token: string , userId: string) {
         },
     });
 
-    // Mark invitation as accepted
+
     await prisma.invitation.update({
         where: { token }, data: { accepted: true }
     });

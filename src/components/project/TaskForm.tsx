@@ -14,7 +14,7 @@ import { useModal } from '../ui/animated-modal'
 import { useTaskStore } from '@/store/TaskStore'
 import { createTask } from '@/app/actions/Task'
 import { toast } from 'sonner'
-import { Status, Priority } from '@/generated/prisma'
+import { Status, Priority } from '@prisma/client'
 
 const PriorityIcons = {
   "NO_PRIORITY": <MoreHorizontal className="w-4 h-4" />,

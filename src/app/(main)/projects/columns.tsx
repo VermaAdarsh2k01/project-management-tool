@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Priority, Status } from "@/generated/prisma/client";
+import { Priority, Status } from "@prisma/client";
 import { MoreHorizontal, SignalHigh, SignalMedium, SignalLow, AlertTriangle , Box } from 'lucide-react';
 
 

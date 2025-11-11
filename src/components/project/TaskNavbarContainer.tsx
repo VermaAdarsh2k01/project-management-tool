@@ -1,6 +1,6 @@
 "use client"
 import React,{useState} from 'react'
-import { Status, Priority } from '@/generated/prisma';
+import { Status, Priority } from '@prisma/client';
 import { useTaskStore } from '@/store/TaskStore';
 import { useTransition } from 'react';
 import { createTask } from '@/app/actions/Task';
