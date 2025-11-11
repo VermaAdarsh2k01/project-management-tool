@@ -2,7 +2,7 @@
 
 import { Priority, Status } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import {auth} from "@clerk/nextjs/server";
+import {auth, currentUser} from "@clerk/nextjs/server";
 
 interface CreateProjectProps {
   name: string;
@@ -183,4 +183,24 @@ export async function UpdateProject(data: UpdateProjectProps) {
     ...updatedProject,
     currentUserRole: userRole
   };
+}
+
+export async function deleteProject(projectId: string) {
+  const user = await currentUser();
+
+  if(!user) throw new Error("User not authenticated");
+
+  const project = await prisma.project.findUnique({
+    where: {id: projectId},
+  })
+
+  if(!project) throw new Error("Project not found");
+
+  const isOwner = project.ownerId === user.id;
+
+  if(!isOwner) throw new Error("You don't have permission to delete this project");
+
+  isOwner && await prisma.project.delete({
+    where: {id: projectId},
+  })
 }

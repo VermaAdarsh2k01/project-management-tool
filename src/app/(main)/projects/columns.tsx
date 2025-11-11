@@ -2,7 +2,13 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Priority, Status } from "@prisma/client";
-import { MoreHorizontal, SignalHigh, SignalMedium, SignalLow, AlertTriangle , Box } from 'lucide-react';
+import { MoreHorizontal, SignalHigh, SignalMedium, SignalLow, AlertTriangle , Box, Trash, Edit } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { deleteProject } from "@/app/actions/Project";
+import { useProjectStore } from "@/store/ProjectStore";
+import { toast } from "sonner";
 
 
 export type ProjectData = {
@@ -43,6 +49,9 @@ const PriorityLabels = {
   "URGENT": "Urgent",
 }
 
+
+
+
 const formatData = (date: Date | null) => {
     if (!date) return null;
     
@@ -50,6 +59,54 @@ const formatData = (date: Date | null) => {
     const month = date.toLocaleString('en-US', { month: 'long' });
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
+}
+
+const ProjectActionsCell = ({ project }: { project: ProjectData }) => {
+
+    const projectId = project.id;
+    
+    const handleDeleteProject = async (projectId:string) => {
+        const { removeProject : removeProjectFromStore } = useProjectStore();
+        removeProjectFromStore(projectId);
+        await deleteProject(projectId);
+        toast.success("Project deleted successfully");
+    }
+    
+    return (
+    <div onClick={(e) => e.stopPropagation()}>
+        <AlertDialog>
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0" >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <AlertDialogTrigger asChild>
+                    <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}>Delete Project</DropdownMenuItem>
+                </AlertDialogTrigger>
+            </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the project
+                    <span className="font-semibold"> "{project.name}"</span> and remove all associated data.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                onClick={() => handleDeleteProject(project.id)}
+                >Delete</AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </div>
+    );
 }
 
 export const columns: ColumnDef<ProjectData>[] = [
@@ -104,4 +161,17 @@ export const columns: ColumnDef<ProjectData>[] = [
             );
         }
     },
-]
+    {
+        header: "Actions",
+        accessorKey: "actions",
+        size: 100,
+        cell: ({row}) => {
+            const project = row.original as ProjectData;
+            return( 
+            <div onClick={(e) => e.stopPropagation()}>
+                <ProjectActionsCell project={project} />
+            </div>
+            )
+        },
+    },
+];

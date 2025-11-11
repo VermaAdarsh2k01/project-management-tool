@@ -10,6 +10,8 @@ import { useState } from 'react'
 import { updateTask as updateTaskAction } from '@/app/actions/Task'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
+import { Modal, ModalContent, ModalBody, ModalTrigger } from '../ui/animated-modal'
+import EditTaskForm from './EditTaskForm'
 
 
 const DroppableColumn = ({ column, children }: { column: string, children: React.ReactNode }) => {
@@ -126,13 +128,20 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
                             <h2 className='text-base'>{column}</h2>
                         </div>
                         <div className='px-3 pb-3 max-h-[calc(100vh-200px)] overflow-y-auto'>
+                            
                             {getTasksForColumn(column).map((task) => (
-                                <TaskCard
-                                    key={task.id}
-                                    task={task}
-                                    onClick={handleTaskClick}
-                                    canDrag={canEdit} // Pass drag permission to TaskCard
-                                />
+                                <Modal key={task.id}>
+                                    <ModalTrigger className='w-full h-full text-left px-0 py-0' >
+                                        
+                                            <TaskCard task={task} onClick={handleTaskClick} canDrag={canEdit} />
+
+                                    </ModalTrigger>
+                                    <ModalBody>
+                                        <ModalContent>
+                                            <EditTaskForm task={task} />
+                                        </ModalContent>
+                                    </ModalBody>
+                                </Modal>
                             ))}
                         </div>
                     </DroppableColumn>
