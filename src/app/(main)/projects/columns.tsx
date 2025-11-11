@@ -62,11 +62,10 @@ const formatData = (date: Date | null) => {
 }
 
 const ProjectActionsCell = ({ project }: { project: ProjectData }) => {
-
-    const projectId = project.id;
+    // ✅ Move hook to component level
+    const { removeProject: removeProjectFromStore } = useProjectStore();
     
-    const handleDeleteProject = async (projectId:string) => {
-        const { removeProject : removeProjectFromStore } = useProjectStore();
+    const handleDeleteProject = async (projectId: string) => {
         removeProjectFromStore(projectId);
         await deleteProject(projectId);
         toast.success("Project deleted successfully");
@@ -94,7 +93,7 @@ const ProjectActionsCell = ({ project }: { project: ProjectData }) => {
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the project
-                    <span className="font-semibold"> "{project.name}"</span> and remove all associated data.
+                    <span className="font-semibold"> &quot;{project.name}&quot;</span> and remove all associated data.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

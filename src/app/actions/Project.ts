@@ -200,7 +200,7 @@ export async function deleteProject(projectId: string) {
 
   if(!isOwner) throw new Error("You don't have permission to delete this project");
 
-  isOwner && await prisma.project.delete({
+  await prisma.project.delete({
     where: {id: projectId},
   })
 }

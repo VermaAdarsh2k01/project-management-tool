@@ -93,7 +93,6 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
 
         const newStatus = StatusMapping[newColumnName as keyof typeof StatusMapping] as Status;
         
-
         const task = tasks.find(t => t.id === taskId);
         
         if (task && task.status !== newStatus) {
@@ -166,7 +165,6 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
         );
     }
 
-    // Return content without drag functionality for viewers
     return content;
 }
 
