@@ -1,8 +1,11 @@
 "use server"
 
-import { Priority, Status } from "@prisma/client";
+import { Priority, Role, Status } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {auth, currentUser} from "@clerk/nextjs/server";
+import { cacheDelete } from "@/lib/cache";
+import { cacheSet } from "@/lib/cache";
+import { cacheGet } from "@/lib/cache"
 
 interface CreateProjectProps {
   name: string;
@@ -51,6 +54,10 @@ export async function CreateProject(data: CreateProjectProps) {
         },
       });
 
+      await cacheDelete(`user:${user.id}:projects`)
+
+      await cacheSet(`project:${project.id}` , project)
+
     return project;
     
 }
@@ -59,6 +66,10 @@ export async function GetProjects() {
   const { userId } = await auth();
 
   if(!userId) throw new Error("User not authenticated");
+
+  const redisData = await cacheGet(`users:${userId}:projects`)
+
+  if(redisData) return redisData;
 
   const projects = await prisma.project.findMany({
     where:{
@@ -77,6 +88,8 @@ export async function GetProjects() {
     }
   })
 
+  await cacheSet(`users:${userId}:projects` , projects , 120)
+
   return projects;
 }
 
@@ -84,6 +97,10 @@ export async function GetProjectById(projectId: string) {
   const { userId } = await auth();
 
   if(!userId) throw new Error("User not authenticated");
+
+  const redisData = await cacheGet(`users:${userId}:projects:${projectId}`)
+
+  if(redisData) return redisData
 
   const project = await prisma.project.findFirst({
     where:{
@@ -107,14 +124,20 @@ export async function GetProjectById(projectId: string) {
     throw new Error("Project not found");
   }
 
+
+
   // Find current user's role
   const currentUserMembership = project.memberships.find(m => m.userId === userId);
   const userRole = project.ownerId === userId ? 'ADMIN' : currentUserMembership?.role || 'VIEWER';
 
-  return {
+  const response =  {
     ...project,
     currentUserRole: userRole
   };
+
+    await cacheSet(`users:${userId}:projects:${projectId}` , response , 120) 
+
+    return response
 }
 
 interface UpdateProjectProps {
@@ -130,33 +153,32 @@ interface UpdateProjectProps {
 
 export async function UpdateProject(data: UpdateProjectProps) {
   const { userId } = await auth();
+  if (!userId) throw new Error("User not authenticated");
 
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
+  const projectId = data.id;
 
-  // Verify the user has permission to edit this project
-  const existingProject = await prisma.project.findFirst({
-    where: {
-      id: data.id,
-      OR: [
-        { ownerId: userId },
-        { memberships: { some: { userId: userId, role: { in: ['ADMIN', 'EDITOR'] } } } }
-      ]
-    },
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
     include: {
-      memberships: true
-    }
+      memberships: true,
+    },
   });
 
-  if (!existingProject) {
-    throw new Error("Project not found or insufficient permissions");
+  if (!project) throw new Error("Project not found");
+
+  const isOwner = project.ownerId === userId;
+  const membership = project.memberships.find((m) => m.userId === userId);
+
+  const isAllowed =
+    isOwner ||
+    (membership && (membership.role === Role.ADMIN || membership.role === Role.EDITOR));
+
+  if (!isAllowed) {
+    throw new Error("You do not have permission to update this project");
   }
 
   const updatedProject = await prisma.project.update({
-    where: {
-      id: data.id,
-    },
+    where: { id: projectId },
     data: {
       name: data.name,
       summary: data.summary,
@@ -168,20 +190,22 @@ export async function UpdateProject(data: UpdateProjectProps) {
     },
     include: {
       memberships: {
-        include: {
-          user: true
-        }
+        include: { user: true },
       },
-    }
+    },
   });
 
-  // Find current user's role
-  const currentUserMembership = updatedProject.memberships.find(m => m.userId === userId);
-  const userRole = updatedProject.ownerId === userId ? 'ADMIN' : currentUserMembership?.role || 'VIEWER';
+  const currentMembership = updatedProject.memberships.find(
+    (m) => m.userId === userId
+  );
+
+  const currentUserRole = isOwner
+    ? Role.ADMIN
+    : currentMembership?.role || Role.VIEWER;
 
   return {
     ...updatedProject,
-    currentUserRole: userRole
+    currentUserRole,
   };
 }
 
