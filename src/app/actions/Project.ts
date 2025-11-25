@@ -18,6 +18,14 @@ interface CreateProjectProps {
   members?: string[] | null;
 }   
 
+interface ProjectTableData {
+  id: string, 
+  name: string, 
+  status: Status,
+  priority:Priority,
+  targetDate: Date,
+}
+
 export async function CreateProject(data: CreateProjectProps) {
   
     const { userId } = await auth();
@@ -54,20 +62,18 @@ export async function CreateProject(data: CreateProjectProps) {
         },
       });
 
-      await cacheDelete(`user:${user.id}:projects`)
-
-      await cacheSet(`project:${project.id}` , project)
-
+      await cacheDelete(`users:${user.id}:projects`)
     return project;
     
 }
 
-export async function GetProjects() {
+export async function GetProjectLists() {
   const { userId } = await auth();
+  const cacheKey = `users:${userId}:projects:list`
 
   if(!userId) throw new Error("User not authenticated");
 
-  const redisData = await cacheGet(`users:${userId}:projects`)
+  const redisData = await cacheGet(cacheKey)
 
   if(redisData) return redisData;
 
@@ -79,12 +85,12 @@ export async function GetProjects() {
       ]
       
     },
-    include:{
-      memberships: {
-        include: {
-          user: true
-        }
-      },
+    select: {
+      id: true, 
+      name: true, 
+      status: true,
+      priority:true,
+      targetDate: true,
     }
   })
 
@@ -98,9 +104,9 @@ export async function GetProjectById(projectId: string) {
 
   if(!userId) throw new Error("User not authenticated");
 
-  const redisData = await cacheGet(`users:${userId}:projects:${projectId}`)
+  const ProjectCache = cacheGet(`users:${userId}:projects:${projectId}`)
 
-  if(redisData) return redisData
+  if(ProjectCache) return ProjectCache;
 
   const project = await prisma.project.findFirst({
     where:{
@@ -124,8 +130,6 @@ export async function GetProjectById(projectId: string) {
     throw new Error("Project not found");
   }
 
-
-
   // Find current user's role
   const currentUserMembership = project.memberships.find(m => m.userId === userId);
   const userRole = project.ownerId === userId ? 'ADMIN' : currentUserMembership?.role || 'VIEWER';
@@ -135,7 +139,7 @@ export async function GetProjectById(projectId: string) {
     currentUserRole: userRole
   };
 
-    await cacheSet(`users:${userId}:projects:${projectId}` , response , 120) 
+  await cacheSet(`users:${userId}:projects:${projectId}` , response , 120) 
 
     return response
 }

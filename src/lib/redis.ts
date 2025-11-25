@@ -1,15 +1,22 @@
-import Redis from "ioredis";
+import Redis from 'ioredis';
 
-const globalForRedis = global as unknown as {
-  redis: Redis | undefined;
-};
+// Determine the connection string or options
+let redis: Redis | null = null;
 
-export const redis =
-  globalForRedis.redis ??
-  new Redis({
-    host: process.env.REDIS_HOST ?? "127.0.0.1",
-    port: Number(process.env.REDIS_PORT ?? 6379),
-    password: process.env.REDIS_PASSWORD ?? undefined,
+if (process.env.REDIS_HOST && process.env.REDIS_PORT) {
+  redis = new Redis({
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT, 10),
   });
+} else if (process.env.UPSTASH_REDIS_URL) {
 
-if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
+  redis = new Redis(process.env.UPSTASH_REDIS_URL as string);
+}
+
+if (redis) {
+  redis.on('error', (err) => console.error('Redis Client Error', err));
+} else {
+  console.error('No Redis configuration found. Please set REDIS_HOST/REDIS_PORT or UPSTASH_REDIS_URL.');
+}
+
+export default redis;

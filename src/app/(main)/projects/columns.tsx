@@ -15,7 +15,7 @@ export type ProjectData = {
     id:string,
     name:string,
     status:Status,
-    targetDate:Date | null,
+    targetDate:Date | string | null,
     priority:Priority,
 }
 
@@ -52,17 +52,21 @@ const PriorityLabels = {
 
 
 
-const formatData = (date: Date | null) => {
+const formatData = (date: Date | string | null) => {
     if (!date) return null;
-    
-    const day = date.getDate();
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const year = date.getFullYear();
+
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return null;
+
+    const day = dateObj.getDate();
+    const month = dateObj.toLocaleString('en-US', { month: 'long' });
+    const year = dateObj.getFullYear();
     return `${day} ${month} ${year}`;
 }
 
 const ProjectActionsCell = ({ project }: { project: ProjectData }) => {
-    // ✅ Move hook to component level
+   
     const { removeProject: removeProjectFromStore } = useProjectStore();
     
     const handleDeleteProject = async (projectId: string) => {

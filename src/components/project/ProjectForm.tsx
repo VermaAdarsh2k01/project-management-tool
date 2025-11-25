@@ -16,6 +16,7 @@ import { useProjectStore } from '@/store/ProjectStore'
 import { CreateProject } from '@/app/actions/Project'
 import { toast } from 'sonner'
 
+
 const PriorityIcons = {
   "no-priority": <MoreHorizontal className="w-4 h-4" />,
   "low": <SignalLow className="w-4 h-4" />,
@@ -55,7 +56,7 @@ const ProjectForm = () => {
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isPending , startTrnasition] = useTransition();
-  const {addProject , removeProject , setProjects} = useProjectStore();
+  const {addProject , removeProject , setProjects , triggerProjectsRefetch} = useProjectStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,10 +105,11 @@ const ProjectForm = () => {
           
           removeProject(tempId);
           addProject({...newProject});
+          triggerProjectsRefetch();
           modal.setOpen(false);
           toast.success("Project created successfully");  
         } catch (err) {
-          console.error("❌ Error creating project:", err);
+          console.error("Error creating project:", err);
           removeProject(tempId); 
         }
       })

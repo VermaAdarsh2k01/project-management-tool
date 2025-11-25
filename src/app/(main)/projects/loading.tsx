@@ -3,11 +3,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <div className="space-y-4">
-      {/* Header skeleton */}
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-6 w-20" />
-        <Skeleton className="h-10 w-32" />
-      </div>
       
       {/* Table skeleton */}
       <div className="space-y-3">
