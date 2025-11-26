@@ -12,9 +12,9 @@ export function AutoSignOut({ invitedEmail, redirectUrl }: AutoSignOutProps) {
   const { signOut } = useClerk();
 
   useEffect(() => {
-    // Immediately sign out and redirect
+    // Sign out and redirect back to the invitation link with the correct email
     signOut({
-      redirectUrl: "/sign-in?redirect_url=/"
+      redirectUrl: `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
     });
   }, [signOut, redirectUrl]);
 

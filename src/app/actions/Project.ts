@@ -199,6 +199,9 @@ export async function UpdateProject(data: UpdateProjectProps) {
     },
   });
 
+  await cacheDelete(`users:${userId}:projects`);               
+  await cacheDelete(`users:${userId}:projects:${projectId}`);  
+
   const currentMembership = updatedProject.memberships.find(
     (m) => m.userId === userId
   );

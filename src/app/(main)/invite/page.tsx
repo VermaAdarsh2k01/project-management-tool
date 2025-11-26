@@ -24,17 +24,9 @@ export default async function InvitePage({
   const { userId } = await auth();
   const user = await currentUser();
 
-  // If not logged in → send them to the right Clerk page
+  // If not logged in → send them to sign-in with redirect back to invitation
   if (!userId) {
-    const invitedUser = await prisma.user.findUnique({
-      where: { email: invite.email },
-    });
-
-    const redirectTo = invitedUser
-      ? `/sign-in?redirect_url=/invite?token=${token}`
-      : `/sign-up?redirect_url=/invite?token=${token}`;
-
-    redirect(redirectTo);
+    redirect(`/sign-in?redirect_url=/invite?token=${token}`);
   }
 
   // Logged in, check email match
@@ -47,11 +39,18 @@ export default async function InvitePage({
 
   try {
     const res = await acceptInvitation(token, userId);
-    if (res.success) redirect(`/projects/`);
+    if (res.success) redirect(`/`);
 
     return <ErrorPage title="Invitation Error" message={res.error ?? "Unknown error"} />;
-  } catch {
-    return <ErrorPage title="Server Error" message="Failed to process invitation." />;
+  } catch (error) {
+    // Re-throw Next.js redirect errors (they're not real errors)
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error;
+    }
+    
+    console.error("Error accepting invitation:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to process invitation.";
+    return <ErrorPage title="Server Error" message={errorMessage} />;
   }
 }
 
