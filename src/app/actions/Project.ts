@@ -69,7 +69,7 @@ export async function CreateProject(data: CreateProjectProps) {
 
 export async function GetProjectLists() {
   const { userId } = await auth();
-  const cacheKey = `users:${userId}:projects:list`
+  const cacheKey = `users:${userId}:projects`
 
   if(!userId) throw new Error("User not authenticated");
 
@@ -104,7 +104,7 @@ export async function GetProjectById(projectId: string) {
 
   if(!userId) throw new Error("User not authenticated");
 
-  const ProjectCache = cacheGet(`users:${userId}:projects:${projectId}`)
+  const ProjectCache = await cacheGet(`users:${userId}:projects:${projectId}`)
 
   if(ProjectCache) return ProjectCache;
 
@@ -141,7 +141,7 @@ export async function GetProjectById(projectId: string) {
 
   await cacheSet(`users:${userId}:projects:${projectId}` , response , 120) 
 
-    return response
+  return response
 }
 
 interface UpdateProjectProps {

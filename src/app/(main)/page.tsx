@@ -4,12 +4,6 @@ import { SyncUser } from "@/app/actions/User";
 
 export default async function Home() {
 
-    const { userId } =  await auth();
-
-    if( !userId ){
-        redirect("/sign-in")
-    }
-
     try{
         await SyncUser();
     }catch(err) {

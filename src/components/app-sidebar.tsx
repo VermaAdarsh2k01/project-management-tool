@@ -1,10 +1,13 @@
 "use client"
 
 import { UserButton } from "@clerk/nextjs";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
-import { Suspense, useEffect, useState } from "react";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "./ui/sidebar";
+import { Suspense, useEffect, useState, useTransition } from "react";
 import { Box, Home, LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useProjectStore } from "@/store/ProjectStore";
+import { GetProjectLists } from "@/app/actions/Project";
+import { Skeleton } from "./ui/skeleton";
 
 interface SidebarItem {
     title: string;
@@ -14,10 +17,22 @@ interface SidebarItem {
 
 export default function AppSidebar() {
     const [isMounted, setIsMounted] = useState(false);
+    const { projects, setProjects, shouldRefetchProjects, clearProjectsRefetch } = useProjectStore();
+    const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (!shouldRefetchProjects && projects.length > 0) return;
+
+        startTransition(async () => {
+            const projectData = await GetProjectLists();
+            setProjects(projectData);
+            clearProjectsRefetch();
+        });
+    }, [shouldRefetchProjects, projects.length, setProjects, clearProjectsRefetch]);
 
     const sidebarMenu: SidebarItem[] = [
         {
@@ -50,6 +65,44 @@ export default function AppSidebar() {
                                         <span className="text-lg">{item.title}</span>
                                     </Link>
                                 </SidebarMenuButton>
+                                
+                                {item.title === "Projects" && (
+                                    <Suspense fallback={
+                                        <SidebarMenuSub>
+                                            {Array.from({ length: 3 }).map((_, i) => (
+                                                <SidebarMenuSubItem key={i}>
+                                                    <SidebarMenuSubButton>
+                                                        <Skeleton className="h-4 w-24" />
+                                                    </SidebarMenuSubButton>
+                                                </SidebarMenuSubItem>
+                                            ))}
+                                        </SidebarMenuSub>
+                                    }>
+                                        {isPending ? (
+                                            <SidebarMenuSub>
+                                                {Array.from({ length: 3 }).map((_, i) => (
+                                                    <SidebarMenuSubItem key={i}>
+                                                        <SidebarMenuSubButton>
+                                                            <Skeleton className="h-4 w-24" />
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                ))}
+                                            </SidebarMenuSub>
+                                        ) : projects.length > 0 ? (
+                                            <SidebarMenuSub>
+                                                {projects.map((project) => (
+                                                    <SidebarMenuSubItem key={project.id}>
+                                                        <SidebarMenuSubButton asChild>
+                                                            <Link href={`/projects/${project.id}`}>
+                                                                <span>{project.name}</span>
+                                                            </Link>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                ))}
+                                            </SidebarMenuSub>
+                                        ) : null}
+                                    </Suspense>
+                                )}
                             </SidebarMenuItem>
                         ))
                     }
