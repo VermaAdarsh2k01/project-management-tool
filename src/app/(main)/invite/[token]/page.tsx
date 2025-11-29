@@ -3,54 +3,44 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { acceptInvitation } from "@/app/actions/Invite";
 import Link from "next/link";
-import { AutoSignOut } from "@/components/AutoSignOut";
 
-export default async function InvitePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
+export default async function InvitePage({ params }: { params: { token: string };
 }) {
-  const { token } = await searchParams;
-  if (!token) {
-    return <ErrorPage title="Invalid link" message="No token provided." />;
-  }
+  const token = params.token;
 
   const invite = await prisma.invitation.findUnique({ where: { token } });
-
-  if (!invite) {
-    return <ErrorPage title="Invalid Invitation" message="Invitation not found or expired." />;
-  }
+  if (!invite) return <ErrorPage title="Invalid" message="This invite is invalid or expired." />;
 
   const { userId } = await auth();
+  if(!userId) redirect(`/sign-in?redirect_url=/invite/${token}`);
+
   const user = await currentUser();
+  const email = user?.emailAddresses[0]?.emailAddress;
 
-  // If not logged in → send them to sign-in with redirect back to invitation
-  if (!userId) {
-    redirect(`/sign-in?redirect_url=/invite?token=${token}`);
-  }
-
-  // Logged in, check email match
-  const invitedEmail = invite.email.toLowerCase();
-  const loggedEmail = user?.emailAddresses?.[0]?.emailAddress.toLowerCase() ?? "";
-
-  if (invitedEmail !== loggedEmail) {
-    return <AutoSignOut invitedEmail={invitedEmail} redirectUrl={`/invite?token=${token}`} />;
+  if (invite.email.toLowerCase() !== email?.toLowerCase()) {
+    return (
+      <ErrorPage
+        title="invalid"
+        message={`Your email doesnt match with the invited one - ${invite.email}`}
+      />
+    );
   }
 
   try {
-    const res = await acceptInvitation(token, userId);
-    if (res.success) redirect(`/`);
 
+    const res = await acceptInvitation(token, userId);
+    if (res.success) redirect(`/project/${res.projectId}`);
     return <ErrorPage title="Invitation Error" message={res.error ?? "Unknown error"} />;
+
   } catch (error) {
-    // Re-throw Next.js redirect errors (they're not real errors)
+
     if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
       throw error;
     }
-    
     console.error("Error accepting invitation:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to process invitation.";
     return <ErrorPage title="Server Error" message={errorMessage} />;
+
   }
 }
 

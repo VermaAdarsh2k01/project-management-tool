@@ -15,7 +15,7 @@ import { useModal } from '../ui/animated-modal'
 import { ChevronDown, Crown, Edit, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import emailjs from '@emailjs/browser'
-import { sendInvitation, createInvitationRecord } from '@/app/actions/Invite'
+import { sendInvitation , createInvitationRecord} from '@/app/actions/Invite'
 
 const RoleIcons = {
   "ADMIN": <Crown className="w-4 h-4 text-yellow-600" />,
