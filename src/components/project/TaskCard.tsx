@@ -10,7 +10,8 @@ import { CSS } from '@dnd-kit/utilities'
 interface TaskCardProps {
   task: Task
   onClick?: (task: Task) => void,
-  canDrag?: boolean
+  canDrag?: boolean,
+  canEdit?: boolean
 }
 
 const PriorityIcons = {
@@ -22,7 +23,7 @@ const PriorityIcons = {
 }
 
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onClick , canDrag }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onClick , canDrag , canEdit }) => {
   const {
     attributes,
     listeners,
