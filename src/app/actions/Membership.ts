@@ -2,7 +2,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
-import { cacheGet } from "@/lib/cache";
+import { cacheGet, cacheSet, cacheDelete } from "@/lib/cache";
 
 export async function removeMember( memberId :string , projectId: string) {
     const user = await currentUser();
@@ -44,6 +44,11 @@ export async function removeMember( memberId :string , projectId: string) {
             id:memberId
         }
     })
+    
+    // Invalidate cache after removing member
+    const cachekey = `projects:${projectId}:members`;
+    await cacheDelete(cachekey);
+    
     return { success: true };
        
 }
@@ -92,6 +97,10 @@ export async function updateMemberRole( memberId:string ,projectId:string , newR
         data: { role: newRole },
         include: { user: true }
     })
+    
+    // Invalidate cache after updating member role
+    const cachekey = `projects:${projectId}:members`;
+    await cacheDelete(cachekey);
 
     return { success: true, member: updatedMembership };
 } 
@@ -113,14 +122,23 @@ export async function getMemebersbyProjectId({projectId}:{projectId:string}){
             projectId: projectId
         },
         select:{
-            role:true,
+            id: true,
+            userId: true,
+            role: true,
             user:{
                 select:{
-                    name:true
+                    id: true,
+                    name: true,
+                    email: true
                 }
             },
         }
     })
+    
+    // Cache the fetched data
+    if (response) {
+        await cacheSet(cachekey, response, 200);
+    }
 
     return response
 }

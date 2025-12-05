@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { acceptInvitation } from "@/app/actions/Invite";
 import Link from "next/link";
 
-export default async function InvitePage({ params }: { params: { token: string };
-}) {
-  const token = params.token;
+export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
 
   const invite = await prisma.invitation.findUnique({ where: { token } });
   if (!invite) return <ErrorPage title="Invalid" message="This invite is invalid or expired." />;
@@ -29,8 +28,8 @@ export default async function InvitePage({ params }: { params: { token: string }
   try {
 
     const res = await acceptInvitation(token, userId);
-    if (res.success) redirect(`/project/${res.projectId}`);
-    return <ErrorPage title="Invitation Error" message={res.error ?? "Unknown error"} />;
+    if (res.success) redirect(`/projects/${res.projectId}`);
+    return <ErrorPage title="Invitation Message" message={res.error ?? "Unknown error"} />;
 
   } catch (error) {
 
@@ -46,10 +45,12 @@ export default async function InvitePage({ params }: { params: { token: string }
 
 function ErrorPage({ title, message }: { title: string; message: string }) {
   return (
-    <div className="text-center p-6">
-      <h1 className="text-2xl font-bold text-red-600 mb-4">{title}</h1>
-      <p className="mb-4">{message}</p>
-      <Link href="/" className="text-blue-600 underline">Go Home</Link>
+    <div className="text-center p-6 w-full h-screen flex flex-col items-center justify-center">
+      <div className="max-w-md mx-auto bg-neutral-900/50 border border-neutral-800 rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">{title}</h1>
+        <p className="mb-4">{message}</p>
+        <Link href="/" className="text-blue-600 bg-blue-500/10 rounded-lg px-4 py-2">Go Home</Link>
+      </div>
     </div>
   );
 }

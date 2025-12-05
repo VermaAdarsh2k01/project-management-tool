@@ -77,7 +77,7 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
       setRole('VIEWER')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation'
-      toast.error(errorMessage)
+      toast.error(errorMessage) 
     } finally {
       setIsLoading(false)
     }

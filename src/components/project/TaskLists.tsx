@@ -132,7 +132,7 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
                                     </ModalTrigger>
                                     <ModalBody>
                                         <ModalContent>
-                                            <EditTaskForm task={task} />
+                                            <EditTaskForm task={task} canEdit={canEdit} />
                                         </ModalContent>
                                     </ModalBody>
                                 </Modal>
@@ -152,7 +152,7 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
                 <DragOverlay>
                     {activeTask ? (
                         <div className="rotate-3 transform">
-                            <TaskCard task={activeTask} canDrag={true} />
+                            <TaskCard task={activeTask} canDrag={true} canEdit={canEdit}/>
                         </div>
                     ) : null}
                 </DragOverlay>

@@ -1,7 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar  from "@/components/app-sidebar";
 import { Toaster } from "sonner";
-export default function MainLayout({
+
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;

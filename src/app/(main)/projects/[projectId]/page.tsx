@@ -19,6 +19,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                 issuesData={issuesData}
                 membersData={memberData}
                 currentUserRole={currentUserRole}
+                projectId={projectId}
             />
         </div>
 )

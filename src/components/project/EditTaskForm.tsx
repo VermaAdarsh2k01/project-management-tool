@@ -39,7 +39,7 @@ const taskSchema = z.object({
   dueDate: z.date().nullable(),
 })
 
-const EditTaskForm = ({task}: {task: Task}) => {
+const EditTaskForm = ({task, canEdit}: {task: Task, canEdit: boolean}) => {
 
     const { title: taskTitle, description: taskDescription, status: taskStatus, priority: taskPriority, dueDate: taskDueDate } = task;
     const modal = useModal()
@@ -155,7 +155,7 @@ const EditTaskForm = ({task}: {task: Task}) => {
           <CheckSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </div>
         <div className="flex-1">
-          <h2 className="text-xl lg:text-lg font-semibold">Edit task</h2>
+          <h2 className="text-xl lg:text-lg font-semibold">{canEdit ? 'Edit task' : 'View task'}</h2>
         </div>
       </div>
 
@@ -169,6 +169,7 @@ const EditTaskForm = ({task}: {task: Task}) => {
             onChange={(e) => setTitle(e.target.value)}
             className={`text-2xl font-semibold border-0 px-0 focus-visible:ring-0 placeholder:text-gray-400 bg-[#0A0A0A] placeholder:text-3xl md:text-3xl ${errors.title ? 'border-red-500' : ''}`}
             autoFocus
+            disabled={!canEdit}
           />
           {errors.title && (
             <p className="text-red-500 text-sm mt-1">{errors.title}</p>
@@ -183,6 +184,7 @@ const EditTaskForm = ({task}: {task: Task}) => {
             value={description ?? ''}
             onChange={(e) => setDescription(e.target.value)}
             className={`w-full border-0 px-0 focus-visible:ring-0 focus:outline-none placeholder:text-gray-400 bg-transparent ${errors.description ? 'border-red-500' : ''} text-wrap`}
+            disabled={!canEdit}
           />
           {errors.description && (
             <p className="text-red-500 text-sm mt-1">{errors.description}</p>
@@ -193,10 +195,11 @@ const EditTaskForm = ({task}: {task: Task}) => {
         <div className="flex flex-wrap gap-2 mt-4">
           {/* Status */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild disabled={!canEdit}>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!canEdit}
               >
                 <div className={`w-2 h-2 rounded-full ${StatusColors[status]}`}></div>
                 <span className="font-medium">{getStatusLabel(status)}</span>
@@ -225,10 +228,11 @@ const EditTaskForm = ({task}: {task: Task}) => {
 
           {/* Priority */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild disabled={!canEdit}>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!canEdit}
               >
                 {PriorityIcons[priority]}
                 <span>{getPriorityLabel(priority)}</span>
@@ -261,10 +265,11 @@ const EditTaskForm = ({task}: {task: Task}) => {
 
           {/* Due Date */}
           <Popover>
-            <PopoverTrigger asChild>
+            <PopoverTrigger asChild disabled={!canEdit}>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!canEdit}
               >
                 <CalendarIcon className="w-4 h-4" />
                 <span>{dueDate ? format(dueDate, 'MMM dd, yyyy') : 'Due Date'}</span>
@@ -285,23 +290,27 @@ const EditTaskForm = ({task}: {task: Task}) => {
       </form>
 
       {/* Footer Actions */}
-      <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={handleCancel}
-          disabled={isPending}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={handleSubmit}
-          disabled={isPending}
-        >
-          {isPending ? 'Updating...' : 'Update task'}
-        </Button>
-      </div>
+      {canEdit && (
+        <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleCancel}
+            disabled={isPending}
+          >
+            {canEdit ? 'Cancel' : 'Close'}
+          </Button>
+          
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isPending}
+            >
+              {isPending ? 'Updating...' : 'Update task'}
+            </Button>
+
+        </div>
+      )}
     </div>
   )
 }

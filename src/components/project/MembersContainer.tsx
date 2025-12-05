@@ -3,35 +3,27 @@
 import React, { useEffect } from 'react'
 
 import { createMembersColumns } from './members-columns';
-import { Project, User, Membership } from '@prisma/client';
 import { MembersDataTable } from './MembersDataTable';
 import AddMemberButton from '@/components/project/AddMemberButton';
-import { useMemberStore } from '@/store/MemberStore';
+import { useMemberStore, Member } from '@/store/MemberStore';
 
-type ProjectWithMemberships = Project & {
-    memberships: (Membership & {
-        user: User;
-    })[];
+interface MembersContainerProps {
+    membersData: Member[];
     currentUserRole: string;
-};
+    projectId: string;
+}
 
-const MembersContainer = ({project}: {project: ProjectWithMemberships}) => {
+const MembersContainer = ({membersData, currentUserRole, projectId}: MembersContainerProps) => {
     const { members, setMembers } = useMemberStore();
 
     // Initialize the store with members from the server
     useEffect(() => {
-        const initialMembers = project.memberships.map((membership) => ({
-            id: membership.id,
-            userId: membership.userId,
-            role: membership.role,
-            user: membership.user
-        }));
-        setMembers(initialMembers);
-    }, [project.memberships, setMembers]);
+        setMembers(membersData);
+    }, [membersData, setMembers]);
 
-    const canEdit = project.currentUserRole === 'ADMIN' || project.currentUserRole === 'EDITOR';
+    const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR';
     
-    const allColumns = createMembersColumns(project.id);
+    const allColumns = createMembersColumns(projectId);
     const visibleColumns = canEdit 
         ? allColumns 
         : allColumns.filter(col => col.id !== 'actions'); 
@@ -40,8 +32,7 @@ const MembersContainer = ({project}: {project: ProjectWithMemberships}) => {
         <div className="space-y-4">
             <div className="flex items-center justify-between my-2">
                 <h2 className="text-2xl font-bold">Members</h2>
-                {/* TODO: Add invite member button */}
-                {canEdit && <AddMemberButton projectId={project.id} />}
+                {canEdit && <AddMemberButton projectId={projectId} />}
             </div>
             <MembersDataTable columns={visibleColumns} data={members} />
         </div>

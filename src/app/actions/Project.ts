@@ -99,6 +99,58 @@ export async function GetProjectLists() {
   return projects;
 }
 
+export async function GetProjectTimeline() {
+  const { userId } = await auth();
+  
+  if(!userId) throw new Error("User not authenticated");
+
+  const cacheKey = `users:${userId}:projects:timeline`;
+  
+  const redisData = await cacheGet(cacheKey);
+  if(redisData) return redisData;
+
+  const projects = await prisma.project.findMany({
+    where:{
+      OR:[
+        { ownerId: userId },
+        { memberships: { some: { userId: userId } } }
+      ]
+    },
+    select: {
+      id: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
+  });
+
+  // Group projects by month and calculate cumulative count
+  const monthlyData: Record<string, number> = {};
+  let cumulativeCount = 0;
+
+  projects.forEach((project) => {
+    cumulativeCount++;
+    const date = new Date(project.createdAt);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthlyData[monthKey] = cumulativeCount;
+  });
+
+  // Convert to array format for chart
+  const timelineData = Object.entries(monthlyData).map(([month, count]) => {
+    const [year, monthNum] = month.split('-');
+    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+    return {
+      month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      projects: count,
+    };
+  });
+
+  await cacheSet(cacheKey, timelineData, 120);
+
+  return timelineData;
+}
+
 export async function GetProjectById(projectId: string) {
   const { userId } = await auth();
 

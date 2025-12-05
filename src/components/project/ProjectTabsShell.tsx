@@ -4,8 +4,11 @@ import { Tabs, TabsTrigger ,TabsList, TabsContent } from '@radix-ui/react-tabs'
 import React, { useState } from 'react'
 import { BoxIcon, FileTextIcon, Layers2, Users } from 'lucide-react'
 import OverviewSection from '../overview/OverviewSection'
-import { Priority, Role, Status } from '@prisma/client'
-import { currentUser } from '@clerk/nextjs/server'
+import IssuesContainer from './IssuesContainer'
+import MembersContainer from './MembersContainer'
+import { Priority, Status } from '@prisma/client'
+import { Member } from '@/store/MemberStore'
+import { Task } from '@/store/TaskStore'
 
 interface OverviewProps{
     id:string,
@@ -18,20 +21,7 @@ interface OverviewProps{
     targetDate:Date
 }
 
-interface issuesProp{
-    title:string,
-    description:string | null,
-    status:Status,
-    priority:Priority,
-    dueDate:Date | null,
-}
-
-interface membershipProp{
-    role:Role,
-    name:string
-}
-
-    const ProjectTabsShell = ({ overviewData, issuesData, membersData, currentUserRole } : { overviewData: OverviewProps; issuesData: issuesProp[]; membersData: membershipProp[]; currentUserRole: string})=> {
+    const ProjectTabsShell = ({ overviewData, issuesData, membersData, currentUserRole, projectId } : { overviewData: OverviewProps | null; issuesData: Task[]; membersData: Member[]; currentUserRole: string; projectId: string})=> {
     const [isActive, setIsActive] = useState("overview")
     
     return (
@@ -76,10 +66,10 @@ interface membershipProp{
                     <OverviewSection overviewData={overviewData} currentUserRole={currentUserRole}/>
                 </TabsContent>
                 <TabsContent value="issues">
-                    <IssuesContainer issuesData={issuesData} currentUserRole={currentUserRole} />
+                    <IssuesContainer issuesData={issuesData} currentUserRole={currentUserRole} projectId={projectId} />
                 </TabsContent>
                 <TabsContent value = "members">
-                    <MembersContainer project={project} />
+                    <MembersContainer membersData={membersData} currentUserRole={currentUserRole} projectId={projectId} />
                 </TabsContent>
             </Tabs>
         </div>

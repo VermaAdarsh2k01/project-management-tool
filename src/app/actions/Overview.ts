@@ -21,7 +21,7 @@ export async function GetOverviewData({projectId}:{projectId:string}){
 
     const cachekey = `projects:${projectId}:overview`;
     
-    const redisData = cacheGet(cachekey);
+    const redisData = await cacheGet(cachekey);
     if(redisData) return redisData;
 
     const responseData = await prisma.project.findUnique({
@@ -39,6 +39,10 @@ export async function GetOverviewData({projectId}:{projectId:string}){
             targetDate:true,
         }
     })
+    
+    if (responseData) {
+        await cacheSet(cachekey, responseData, 200);
+    }
 
     return responseData;
 }

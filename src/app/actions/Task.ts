@@ -3,6 +3,7 @@ import { Priority, Status } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { currentUser } from "@clerk/nextjs/server";
+import { cacheGet, cacheSet, cacheDelete } from "@/lib/cache";
 
 interface FormData {
     title: string;
@@ -30,16 +31,33 @@ export async function createTask(FormData: FormData){
             projectId:FormData.projectId,
         },
     })
+    
+    // Invalidate cache after creating task
+    const cachekey = `projects:${FormData.projectId}:tasks`;
+    await cacheDelete(cachekey);
 
     return task;
 }
 
 export async function getTasksByProjectId(projectId:string) {
+    const { userId } = await auth();
+    if(!userId) throw new Error("User not authenticated");
+    
+    const cachekey = `projects:${projectId}:tasks`;
+    
+    const redisData = await cacheGet(cachekey);
+    if(redisData) return redisData;
+    
     const tasks = await prisma.task.findMany({
         where:{
             projectId : projectId,
         }
     })
+    
+    // Cache the fetched data
+    if (tasks) {
+        await cacheSet(cachekey, tasks, 200);
+    }
 
     return tasks
 }
@@ -56,8 +74,12 @@ export async function updateTask(taskId:string, data: Partial<FormData>) {
 
     const updatedTask = await prisma.task.update({
         where:{ id: taskId },
-        data: { ...existingTask, ...data },
+        data: data,
     })
+    
+    // Invalidate cache after updating task
+    const cachekey = `projects:${existingTask.projectId}:tasks`;
+    await cacheDelete(cachekey);
 
     return updatedTask;
 }

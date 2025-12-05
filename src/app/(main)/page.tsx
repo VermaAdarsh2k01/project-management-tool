@@ -1,6 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
-import {redirect} from "next/navigation";
 import { SyncUser } from "@/app/actions/User";
+import { ProjectCountCard, ProjectCountCardSkeleton } from "@/components/dashboard/ProjectCountCard";
+import { ProjectTimelineChartWrapper, ProjectTimelineChartSkeleton } from "@/components/dashboard/ProjectTimelineChartWrapper";
+import { Suspense } from "react";
 
 export default async function Home() {
 
@@ -11,19 +12,25 @@ export default async function Home() {
     }
     
     return (
-        <div className="bg-[#101012] h-screen w-screen text-white p-8">
+        <div className="bg-[#101012] min-h-screen w-screen text-white p-8">
         <div className="flex justify-between items-center mb-8">
             
         </div>
         
-        <div className="max-w-2xl">
+        <div className="max-w-5xl mx-auto">
             <h2 className="text-xl mb-4">Welcome!</h2>
             <p className="text-gray-300 mb-4">
-            When you sign in or sign up, your user data will automatically be synced with our database.
+                This is a Project management Tool. Feel free to create as many Projects , add issues into each project .
+                You will see all the projects that you either own or a member of.
             </p>
-            <p className="text-gray-300">
-            The UserSync component runs in the background and ensures your user record exists in our database.
-            </p>
+            
+            <Suspense fallback={<ProjectCountCardSkeleton />}>
+                <ProjectCountCard />
+            </Suspense>
+
+            <Suspense fallback={<ProjectTimelineChartSkeleton />}>
+                <ProjectTimelineChartWrapper />
+            </Suspense>
         </div>
         </div>
     );

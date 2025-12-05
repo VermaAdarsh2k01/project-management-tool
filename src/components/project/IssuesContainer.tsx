@@ -1,30 +1,23 @@
 "use client"
 
-import { getTasksByProjectId } from '@/app/actions/Task'
 import React, { useEffect, useTransition } from 'react'
 import TaskNavbarContainer from './TaskNavbarContainer'
 import TaskLists from './TaskLists'
-import { useTaskStore } from '@/store/TaskStore'
-import { Priority, Status } from '@prisma/client'
-
-interface issuesData{
-  title:string    
-  description: string | null;
-  status: Status
-  priority: Priority
-  dueDate?: Date | null;
-  projectId: string;
-
-}
+import { useTaskStore, Task } from '@/store/TaskStore'
 
 interface IssuesContainerProps {
-  issuesData: string;
+  issuesData: Task[];
   currentUserRole: string;
+  projectId: string;
 }
-const IssuesContainer = ({issuesData, currentUserRole}: IssuesContainerProps) => {
+const IssuesContainer = ({issuesData, currentUserRole, projectId}: IssuesContainerProps) => {
   const { setTasks } = useTaskStore()
   const [, startTransition] = useTransition()
   
+  // Initialize the store with tasks from the server
+  useEffect(() => {
+    setTasks(issuesData);
+  }, [issuesData, setTasks]);
 
   const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
 

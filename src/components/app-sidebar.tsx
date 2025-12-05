@@ -1,11 +1,10 @@
 "use client"
 
 import { UserButton } from "@clerk/nextjs";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "./ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 import { Suspense, useEffect, useState } from "react";
 import { Box, Home, LucideIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useProjectStore } from "@/store/ProjectStore";
 
 interface SidebarItem {
     title: string;
@@ -15,7 +14,6 @@ interface SidebarItem {
 
 export default function AppSidebar() {
     const [isMounted, setIsMounted] = useState(false);
-    const { projects } = useProjectStore();
 
     useEffect(() => {
         setIsMounted(true);
@@ -32,7 +30,6 @@ export default function AppSidebar() {
             url: "/projects",
             icon: Box,
         },
-        
     ];
 
     return (
@@ -43,20 +40,16 @@ export default function AppSidebar() {
 
             <SidebarContent>
                 <SidebarMenu className="px-2 mt-12">
-                    {
-                        sidebarMenu.map((item: SidebarItem) => (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild>
-                                    <Link href={item.url} className="flex items-center gap-2">
-                                        <item.icon className="h-6 w-6" strokeWidth={1.5} />
-                                        <span className="text-lg">{item.title}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                                
-
-                            </SidebarMenuItem>
-                        ))
-                    }
+                    {sidebarMenu.map((item: SidebarItem) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild>
+                                <Link href={item.url} className="flex items-center gap-2">
+                                    <item.icon className="h-6 w-6" strokeWidth={1.5} />
+                                    <span className="text-lg">{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter className="mb-4">

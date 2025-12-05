@@ -25,7 +25,24 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     throw new Error("You do not have permission to invite members to this project");
   }
 
-  // 3. Prevent duplicate active invitations (within 5 minutes)
+  // 3. Check if user with this email is already a member
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser) {
+    const existingMembership = await prisma.membership.findUnique({
+      where: { 
+        userId_projectId: { userId: existingUser.id, projectId } 
+      }
+    });
+
+    if (existingMembership) {
+      throw new Error("This user is already a member of the project");
+    }
+  }
+
+  // 4. Prevent duplicate active invitations (within 5 minutes)
   const existing = await prisma.invitation.findFirst({
     where: { email, projectId, accepted: false }
   });
@@ -42,15 +59,15 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     }
   }
 
-  // 4. Build sender info for email template
+  // 5. Build sender info for email template
   const senderEmail = user.emailAddresses[0].emailAddress;
   const senderName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Project Manager";
 
-  // 5. Generate invitation token
+  // 6. Generate invitation token
   const token = randomUUID();
   const invitationURL = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
 
-  // 6. Return data for client (client triggers email + record creation)
+  // 7. Return data for client (client triggers email + record creation)
   return {
     success: true,
     invitationData: {

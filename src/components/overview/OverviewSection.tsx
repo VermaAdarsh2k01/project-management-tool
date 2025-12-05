@@ -59,13 +59,13 @@ interface overviewData {
 }
 
 interface OverviewSectionProps {
-  overviewData: overviewData;
+  overviewData: overviewData | null;
   currentUserRole: string;
 }
 
 
 const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps) => {
-  const [project, setProject] = useState<overviewData>(overviewData)
+  const [project, setProject] = useState<overviewData | null>(overviewData)
   const [isEditing, setIsEditing] = useState(false)
   const [isPending, startTransition] = useTransition()
   
@@ -86,6 +86,8 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
 
   useEffect(() => {
     // Initialize edit state with project data
+    if (!project) return;
+    
     setEditName(project.name)
     setEditSummary(project.summary || '')
     setEditStatus(project.status)
@@ -108,12 +110,12 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
     setEditPriority(overviewData.priority)
     setEditStartDate(overviewData.startDate ? new Date(overviewData.startDate) : undefined)
     setEditTargetDate(overviewData.targetDate ? new Date(overviewData.targetDate) : undefined)
-    setEditDescription(project.description || '')
+    setEditDescription(overviewData.description || '')
     setIsEditing(false)
   }
 
   const handleSave = () => {
-    if (!overviewData) return
+    if (!overviewData || !project) return
 
     // Store original project data for rollback
     const originalProject = { ...project }
