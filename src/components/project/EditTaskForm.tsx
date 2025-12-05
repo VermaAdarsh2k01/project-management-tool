@@ -12,9 +12,12 @@ import { SignalHigh, SignalMedium, SignalLow } from 'lucide-react'
 import { z } from 'zod'
 import { useModal } from '../ui/animated-modal'
 import { Task, useTaskStore } from '@/store/TaskStore'
-import { updateTask } from '@/app/actions/Task'
+import { deleteTask, updateTask } from '@/app/actions/Task'
 import { toast } from 'sonner'
 import { Status, Priority } from '@prisma/client'
+import { deleteProject } from '@/app/actions/Project'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog'
+import { AlertDialogTrigger } from '@radix-ui/react-alert-dialog'
 
 const PriorityIcons = {
   "NO_PRIORITY": <MoreHorizontal className="w-4 h-4" />,
@@ -50,7 +53,7 @@ const EditTaskForm = ({task, canEdit}: {task: Task, canEdit: boolean}) => {
     const [dueDate, setDueDate] = useState<Date | undefined>(taskDueDate || undefined)
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isPending, startTransition] = useTransition()
-    const { updateTask : updateTaskInStore } = useTaskStore()
+    const { updateTask : updateTaskInStore , removeTask: removeTaskInStore , addTask: addTaskInStore} = useTaskStore()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,6 +127,23 @@ const EditTaskForm = ({task, canEdit}: {task: Task, canEdit: boolean}) => {
     setPriority('NO_PRIORITY')
     setDueDate(undefined)
     setErrors({})
+  }
+
+  const handleDelete = async () => {
+    const taskId = task.id;
+
+    const previousTask = {...task};
+
+    removeTaskInStore(taskId)
+
+    try{
+      await deleteTask({ taskId });
+      toast.success("Task Deleted")
+    }
+    catch(err){
+      addTaskInStore(previousTask);
+      toast.error("Error deleting Task")
+    }
   }
 
   const getPriorityLabel = (priority: Priority) => {
@@ -291,23 +311,56 @@ const EditTaskForm = ({task, canEdit}: {task: Task, canEdit: boolean}) => {
 
       {/* Footer Actions */}
       {canEdit && (
-        <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleCancel}
-            disabled={isPending}
-          >
-            {canEdit ? 'Cancel' : 'Close'}
-          </Button>
-          
+        <div className="flex justify-between gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
+          <div className='w-fit'>
+            <AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={isPending}
+                  >
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete task</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this task? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </AlertDialog>
+          </div>
+          <div className='flex justify-end gap-3'>
             <Button
-              type="submit"
-              onClick={handleSubmit}
+              type="button"
+              variant="ghost"
+              onClick={handleCancel}
               disabled={isPending}
             >
-              {isPending ? 'Updating...' : 'Update task'}
+              {canEdit ? 'Cancel' : 'Close'}
             </Button>
+            
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={isPending}
+              >
+                {isPending ? 'Updating...' : 'Update task'}
+              </Button>
+            </div>
 
         </div>
       )}

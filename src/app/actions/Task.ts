@@ -64,19 +64,34 @@ export async function updateTask(taskId:string, data: Partial<FormData>) {
     const{ userId } = await auth();
     if(!userId) throw new Error("User not authenticated");
 
-    const existingTask = await prisma.task.findUnique({
-        where:{ id: taskId },
-    })
-
-    if(!existingTask) throw new Error("Task not found");
-
     const updatedTask = await prisma.task.update({
         where:{ id: taskId },
         data: data,
+        select:{ projectId:true }
     })
     
-    const cachekey = `projects:${existingTask.projectId}:tasks`;
+    const cachekey = `projects:${updatedTask.projectId}:tasks`;
     await cacheDelete(cachekey);
 
     return updatedTask;
+}
+
+export async function deleteTask({taskId}:{taskId:string}){
+    const {userId} = await auth();
+    if(!userId) throw new Error("User not authenticated") ;
+
+    const user = await currentUser();
+    if(!user) throw new Error("User not found");
+
+    const response = await prisma.task.delete({
+        where:{
+            id:taskId
+        },
+        select:{
+            projectId:true
+        }
+    })
+
+    const cachekey = `projects:${response.projectId}:tasks`
+    await cacheDelete(cachekey)
 }
