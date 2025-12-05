@@ -32,7 +32,6 @@ export async function createTask(FormData: FormData){
         },
     })
     
-    // Invalidate cache after creating task
     const cachekey = `projects:${FormData.projectId}:tasks`;
     await cacheDelete(cachekey);
 
@@ -54,7 +53,6 @@ export async function getTasksByProjectId(projectId:string) {
         }
     })
     
-    // Cache the fetched data
     if (tasks) {
         await cacheSet(cachekey, tasks, 200);
     }
@@ -77,7 +75,6 @@ export async function updateTask(taskId:string, data: Partial<FormData>) {
         data: data,
     })
     
-    // Invalidate cache after updating task
     const cachekey = `projects:${existingTask.projectId}:tasks`;
     await cacheDelete(cachekey);
 

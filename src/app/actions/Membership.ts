@@ -45,7 +45,6 @@ export async function removeMember( memberId :string , projectId: string) {
         }
     })
     
-    // Invalidate cache after removing member
     const cachekey = `projects:${projectId}:members`;
     await cacheDelete(cachekey);
     
@@ -98,7 +97,6 @@ export async function updateMemberRole( memberId:string ,projectId:string , newR
         include: { user: true }
     })
     
-    // Invalidate cache after updating member role
     const cachekey = `projects:${projectId}:members`;
     await cacheDelete(cachekey);
 
@@ -135,7 +133,6 @@ export async function getMemebersbyProjectId({projectId}:{projectId:string}){
         }
     })
     
-    // Cache the fetched data
     if (response) {
         await cacheSet(cachekey, response, 200);
     }

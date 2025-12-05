@@ -10,13 +10,11 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     throw new Error("User not authenticated");
   }
 
-  // 1. Validate email format
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if (!isValidEmail) {
     throw new Error("Enter a valid email address");
   }
 
-  // 2. Ensure the current user is part of this project
   const inviterMembership = await prisma.membership.findUnique({
     where: { userId_projectId: { userId: user.id, projectId } }
   });
@@ -25,7 +23,6 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     throw new Error("You do not have permission to invite members to this project");
   }
 
-  // 3. Check if user with this email is already a member
   const existingUser = await prisma.user.findUnique({
     where: { email }
   });
@@ -42,7 +39,6 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     }
   }
 
-  // 4. Prevent duplicate active invitations (within 5 minutes)
   const existing = await prisma.invitation.findFirst({
     where: { email, projectId, accepted: false }
   });
@@ -51,23 +47,18 @@ export async function sendInvitation(email: string, role: Role, projectId: strin
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
     if (existing.createdAt < fiveMinutesAgo) {
-      // Old invitation → delete & allow a new one
       await prisma.invitation.delete({ where: { id: existing.id } });
     } else {
-      // Invitation already sent recently
       throw new Error("An invitation has already been sent to this email.");
     }
   }
 
-  // 5. Build sender info for email template
   const senderEmail = user.emailAddresses[0].emailAddress;
   const senderName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Project Manager";
 
-  // 6. Generate invitation token
   const token = randomUUID();
   const invitationURL = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
 
-  // 7. Return data for client (client triggers email + record creation)
   return {
     success: true,
     invitationData: {

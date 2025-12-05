@@ -125,7 +125,6 @@ export async function GetProjectTimeline() {
     }
   });
 
-  // Group projects by month and calculate cumulative count
   const monthlyData: Record<string, number> = {};
   let cumulativeCount = 0;
 
@@ -136,7 +135,6 @@ export async function GetProjectTimeline() {
     monthlyData[monthKey] = cumulativeCount;
   });
 
-  // Convert to array format for chart
   const timelineData = Object.entries(monthlyData).map(([month, count]) => {
     const [year, monthNum] = month.split('-');
     const date = new Date(parseInt(year), parseInt(monthNum) - 1);
@@ -182,7 +180,6 @@ export async function GetProjectById(projectId: string) {
     throw new Error("Project not found");
   }
 
-  // Find current user's role
   const currentUserMembership = project.memberships.find(m => m.userId === userId);
   const userRole = project.ownerId === userId ? 'ADMIN' : currentUserMembership?.role || 'VIEWER';
 

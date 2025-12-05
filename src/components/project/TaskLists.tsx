@@ -144,7 +144,6 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
         </div>
     );
 
-    // Only enable DndContext if user can edit
     if (canEdit) {
         return (
             <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>

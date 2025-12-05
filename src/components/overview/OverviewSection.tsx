@@ -75,7 +75,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
 
   const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
   
-  // Edit form state
   const [editName, setEditName] = useState('')
   const [editSummary, setEditSummary] = useState('')
   const [editStatus, setEditStatus] = useState<Status>('BACKLOG')
@@ -85,7 +84,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
   const [editDescription, setEditDescription] = useState('')
 
   useEffect(() => {
-    // Initialize edit state with project data
     if (!project) return;
     
     setEditName(project.name)
@@ -103,7 +101,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
 
   const handleCancel = () => {
     if (!overviewData) return
-    // Reset edit state to current overviewData data
     setEditName(overviewData.name)
     setEditSummary(overviewData.summary || '')
     setEditStatus(overviewData.status)
@@ -117,10 +114,8 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
   const handleSave = () => {
     if (!overviewData || !project) return
 
-    // Store original project data for rollback
     const originalProject = { ...project }
     
-    // Optimistic update - immediately update the UI
     const optimisticUpdates = {
       name: editName,
       summary: editSummary.trim() || null,
@@ -131,10 +126,8 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
       description: editDescription.trim() || null,
     }
     
-    // Update local state immediately
     setProject({ ...project, ...optimisticUpdates })
     
-    // Update Zustand store immediately (optimistic)
     updateProject(project.id, optimisticUpdates)
     
     setIsEditing(false)
@@ -146,7 +139,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
           ...optimisticUpdates,
         })
         
-        // Update with real data from server
         setProject(updatedProject)  
         updateProject(project.id, updatedProject)
         
@@ -154,11 +146,9 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
       } catch (error) {
         console.error('Error updating project:', error)
         
-        // Rollback optimistic updates on error
         setProject(originalProject)
         updateProject(project.id, originalProject)
         
-        // Reset edit state to original values
         setEditName(originalProject.name)
         setEditSummary(originalProject.summary || '')
         setEditStatus(originalProject.status)
@@ -250,10 +240,9 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
               placeholder={!project.summary ? "No summary provided" : "Add a short summary..."}
             />
           </div>
-
-          {/* Metadata Row - Status, Priority, Members, Dates */}
+          
           <div className="flex flex-wrap gap-2">
-            {/* Status */}
+
             {isEditing && canEdit ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -336,17 +325,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
                 <ChevronDown className="w-3 h-3" />
               </div>
             )}
-
-            {/* Members */}
-            {/* <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm">
-              <Users className="w-4 h-4" />
-              <span>
-                {project.memberships.length > 0 
-                  ? `${project.memberships.length} member${project.memberships.length > 1 ? 's' : ''}`
-                  : 'No members'
-                }
-              </span>
-            </div> */}
 
             {/* Start Date */}
             {isEditing && canEdit ? (
@@ -448,34 +426,6 @@ const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps
             )}
           </div>
 
-          {/* Members List */}
-          {/* {project.memberships.length > 0 && (
-            <div>
-              <h3 className="text-lg font-medium mb-3">Team Members</h3>
-              <div className="space-y-2">
-                {project.memberships.map((membership) => (
-                  <div key={membership.user.id} className="flex items-center gap-3 p-2 border border-gray-200 dark:border-neutral-700 rounded-md">
-                    <div className="w-8 h-8 bg-gray-200 dark:bg-neutral-700 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {membership.user.name 
-                          ? membership.user.name.charAt(0).toUpperCase()
-                          : membership.user.email.charAt(0).toUpperCase()
-                        }
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {membership.user.name || 'Unknown User'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {membership.user.email}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
     </div>
