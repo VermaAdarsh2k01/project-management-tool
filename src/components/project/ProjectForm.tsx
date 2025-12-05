@@ -60,7 +60,7 @@ const ProjectForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({}) // Clear previous errors
+    setErrors({})
     
     const currentDate = new Date()
     const formData = {
@@ -79,7 +79,6 @@ const ProjectForm = () => {
       
       
       const tempId = 'temp' + Math.random().toString();
-      //Random Temp Project for Zustand
       addProject({
         id: tempId,
         name: validated.projectName,
@@ -343,8 +342,9 @@ const ProjectForm = () => {
         <Button
           type="submit"
           onClick={handleSubmit}
+          disabled={isPending}
         >
-          Create project
+          {isPending ? 'Creating...' : 'Create project'}
         </Button>
       </div>
     </div>

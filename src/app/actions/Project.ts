@@ -283,4 +283,9 @@ export async function deleteProject(projectId: string) {
   await prisma.project.delete({
     where: {id: projectId},
   })
+
+  await cacheDelete(`users:${user.id}:projects`);               
+  await cacheDelete(`users:${user.id}:projects:${projectId}`); 
+
+  return { success: true };
 }
