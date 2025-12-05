@@ -62,9 +62,6 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
         return tasks.filter((task) => task.status === status);
     };
 
-    const handleTaskClick = (task: Task) => {
-        // You can implement task detail modal or navigation here
-    }
 
     const handleDragStart = (event: DragStartEvent) => {
 
@@ -131,9 +128,7 @@ const TaskLists = ({ canEdit }: { canEdit: boolean }) => {
                             {getTasksForColumn(column).map((task) => (
                                 <Modal key={task.id}>
                                     <ModalTrigger className='w-full h-full text-left px-0 py-0' >
-                                        
-                                            <TaskCard task={task} onClick={handleTaskClick} canDrag={canEdit} />
-
+                                            <TaskCard task={task} canDrag={canEdit} />
                                     </ModalTrigger>
                                     <ModalBody>
                                         <ModalContent>

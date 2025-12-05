@@ -5,21 +5,26 @@ import React, { useEffect, useTransition } from 'react'
 import TaskNavbarContainer from './TaskNavbarContainer'
 import TaskLists from './TaskLists'
 import { useTaskStore } from '@/store/TaskStore'
+import { Priority, Status } from '@prisma/client'
+
+interface issuesData{
+  title:string    
+  description: string | null;
+  status: Status
+  priority: Priority
+  dueDate?: Date | null;
+  projectId: string;
+
+}
 
 interface IssuesContainerProps {
-  projectId: string;
+  issuesData: string;
   currentUserRole: string;
 }
-const IssuesContainer = ({projectId, currentUserRole}: IssuesContainerProps) => {
+const IssuesContainer = ({issuesData, currentUserRole}: IssuesContainerProps) => {
   const { setTasks } = useTaskStore()
   const [, startTransition] = useTransition()
   
-  useEffect(() => {
-    startTransition(async () => {
-      const taskData = await getTasksByProjectId(projectId)
-      setTasks(taskData)
-    })
-  }, [projectId, setTasks])
 
   const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
 

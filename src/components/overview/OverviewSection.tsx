@@ -1,5 +1,6 @@
 "use client"
 
+
 import React, { useEffect, useState, useTransition } from 'react'
 import { Package, MoreHorizontal, Users, CalendarIcon, AlertTriangle, Edit2, Check, X, ChevronDown } from 'lucide-react'
 import { SignalHigh, SignalMedium, SignalLow } from 'lucide-react'
@@ -14,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { toast } from 'sonner'
 import { useProjectStore } from '@/store/ProjectStore'
+import { GetOverviewData } from '@/app/actions/Overview'
 
 const PriorityIcons = {
   "NO_PRIORITY": <MoreHorizontal className="w-4 h-4" />,
@@ -45,8 +47,8 @@ const PriorityLabels = {
   "URGENT": "Urgent",
 }
 
-interface ProjectData {
-  id: string
+interface overviewData {
+  id:string,
   name: string
   summary: string | null
   description: string | null
@@ -54,22 +56,16 @@ interface ProjectData {
   priority: Priority
   startDate: Date | null
   targetDate: Date | null
-  currentUserRole: string
-  memberships: Array<{
-    user: {
-      id: string
-      name: string | null
-      email: string
-    }
-  }>
 }
 
 interface OverviewSectionProps {
-  project: ProjectData;
+  overviewData: overviewData;
+  currentUserRole: string;
 }
 
-const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
-  const [project, setProject] = useState<ProjectData>(initialProject)
+
+const OverviewSection = ({overviewData , currentUserRole }: OverviewSectionProps) => {
+  const [project, setProject] = useState<overviewData>(overviewData)
   const [isEditing, setIsEditing] = useState(false)
   const [isPending, startTransition] = useTransition()
   
@@ -77,7 +73,7 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
   const { updateProject } = useProjectStore()
   
 
-  const canEdit = project?.currentUserRole === 'ADMIN' || project?.currentUserRole === 'EDITOR'
+  const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
   
   // Edit form state
   const [editName, setEditName] = useState('')
@@ -90,22 +86,6 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
 
   useEffect(() => {
     // Initialize edit state with project data
-    setEditName(initialProject.name)
-    setEditSummary(initialProject.summary || '')
-    setEditStatus(initialProject.status)
-    setEditPriority(initialProject.priority)
-    setEditStartDate(initialProject.startDate ? new Date(initialProject.startDate) : undefined)
-    setEditTargetDate(initialProject.targetDate ? new Date(initialProject.targetDate) : undefined)
-    setEditDescription(initialProject.description || '')
-  }, [initialProject])
-
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
-  const handleCancel = () => {
-    if (!project) return
-    // Reset edit state to current project data
     setEditName(project.name)
     setEditSummary(project.summary || '')
     setEditStatus(project.status)
@@ -113,11 +93,27 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
     setEditStartDate(project.startDate ? new Date(project.startDate) : undefined)
     setEditTargetDate(project.targetDate ? new Date(project.targetDate) : undefined)
     setEditDescription(project.description || '')
+  }, [project])
+
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    if (!overviewData) return
+    // Reset edit state to current overviewData data
+    setEditName(overviewData.name)
+    setEditSummary(overviewData.summary || '')
+    setEditStatus(overviewData.status)
+    setEditPriority(overviewData.priority)
+    setEditStartDate(overviewData.startDate ? new Date(overviewData.startDate) : undefined)
+    setEditTargetDate(overviewData.targetDate ? new Date(overviewData.targetDate) : undefined)
+    setEditDescription(project.description || '')
     setIsEditing(false)
   }
 
   const handleSave = () => {
-    if (!project) return
+    if (!overviewData) return
 
     // Store original project data for rollback
     const originalProject = { ...project }
@@ -485,3 +481,28 @@ const OverviewSection = ({ project: initialProject }: OverviewSectionProps) => {
 }
 
 export default OverviewSection
+
+// import { GetOverviewData } from "@/app/actions/Overview"
+// import { UserRole } from "@/app/actions/User";
+// import OverviewClient from "./OverviewClient";
+
+// export default async function OverviewSection( {projectId} : {projectId:string} ){ 
+  
+//   const currentUserRole = await UserRole( {projectId} );
+//   let canEdit;
+//   if(currentUserRole === "ADMIN" || "EDITOR") {
+//     canEdit = true;
+//   }else{
+//     canEdit = false;
+//   }
+  
+//   const response = await GetOverviewData( {projectId} );
+//   const data={...response , projectId}
+//   console.log(response)
+
+//   return(
+//     <div className="w-full min-h-[80vh] flex items-center justify-center border-2 border-red-300">
+//       <OverviewClient initialData={data} canEdit={canEdit}/>
+//     </div>
+//   )
+// }

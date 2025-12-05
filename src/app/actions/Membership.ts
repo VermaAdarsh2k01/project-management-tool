@@ -1,7 +1,8 @@
 "use server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { cacheGet } from "@/lib/cache";
 
 export async function removeMember( memberId :string , projectId: string) {
     const user = await currentUser();
@@ -94,3 +95,32 @@ export async function updateMemberRole( memberId:string ,projectId:string , newR
 
     return { success: true, member: updatedMembership };
 } 
+
+export async function getMemebersbyProjectId({projectId}:{projectId:string}){
+    const {userId} = await auth()
+    if(!userId) throw new Error("User not authenticated")
+
+    const user = await currentUser()
+    if(!user) throw new Error("No user found")
+
+    const cachekey= `projects:${projectId}:members`
+
+    const redisData = await cacheGet(cachekey)
+    if(redisData) return redisData
+
+    const response = await prisma.membership.findMany({
+        where:{
+            projectId: projectId
+        },
+        select:{
+            role:true,
+            user:{
+                select:{
+                    name:true
+                }
+            },
+        }
+    })
+
+    return response
+}

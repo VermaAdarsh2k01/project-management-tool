@@ -39,3 +39,27 @@ export async function SyncUser() {
     return { success: false, reason: "Database error" };
   }
 }
+
+export async function UserRole({projectId} : {projectId:string}) {
+  const { userId: authUserId } = await auth();
+  if (!authUserId) throw new Error("user not authenticated")
+
+  const clerkUser = await currentUser()
+  if (!clerkUser) throw new Error("user not found")
+  
+  const response = await prisma.membership.findUnique({
+    where: {
+      userId_projectId :{
+      userId: authUserId,
+      projectId: projectId
+      },
+    },
+    select:{
+      role:true
+    }
+  })
+
+  if(!response) throw new Error("Couldnt getch members")
+
+  return response.role
+}

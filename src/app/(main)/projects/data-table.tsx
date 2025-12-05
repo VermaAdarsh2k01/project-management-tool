@@ -44,6 +44,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                   <TableHead 
                   key={header.id}
                   style={{ width: header.column.getSize()  }}
+                  className=""
                   >
                     {header.isPlaceholder
                       ? null

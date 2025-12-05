@@ -1,6 +1,6 @@
 import React from 'react'
 import { GetProjectById } from '@/app/actions/Project'
-import ProjectTabsClient from './ProjectTabsClient'
+import ProjectTabsClient from './ProjectTabsShell'
 
 const ProjectLayout = async ({projectId}: {projectId: string}) => {
     const project = await GetProjectById(projectId)
