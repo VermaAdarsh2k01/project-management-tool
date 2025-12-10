@@ -6,7 +6,7 @@ export default function Loading() {
       
       {/* Table skeleton */}
       <div className="space-y-3">
-        {/* Table header */}
+  
         <div className="grid grid-cols-4 gap-4 pb-2 border-b border-gray-700">
           <Skeleton className="h-4 w-12" />
           <Skeleton className="h-4 w-16" />
@@ -14,7 +14,6 @@ export default function Loading() {
           <Skeleton className="h-4 w-16" />
         </div>
         
-        {/* Table rows */}
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="grid grid-cols-4 gap-4 py-3">
             <Skeleton className="h-4 w-24" />

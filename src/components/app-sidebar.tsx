@@ -35,7 +35,7 @@ export default function AppSidebar() {
     return (
         <Sidebar >
             <SidebarHeader className="text-xl font-bold">
-                Linear Clone
+                WorkFlow Tool
             </SidebarHeader>
 
             <SidebarContent>

@@ -14,7 +14,6 @@ const IssuesContainer = ({issuesData, currentUserRole, projectId}: IssuesContain
   const { setTasks } = useTaskStore()
   const [, startTransition] = useTransition()
   
-  // Initialize the store with tasks from the server
   useEffect(() => {
     setTasks(issuesData);
   }, [issuesData, setTasks]);

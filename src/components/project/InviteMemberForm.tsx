@@ -35,7 +35,6 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
   const [isLoading, setIsLoading] = useState(false)
   const modal = useModal()
 
-  // Initialize EmailJS
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
       emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY);
@@ -49,14 +48,12 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
     setIsLoading(true)
     
     try {
-      // First, prepare invitation data (but don't create DB record yet)
       const result = await sendInvitation(email, role, projectId);
 
       if (!result.success) {
         throw new Error('Failed to process invitation');
       }
 
-      // Send email using EmailJS first
       const emailResult = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
@@ -64,15 +61,12 @@ const InviteMemberForm = ({projectId}: {projectId: string}) => {
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
 
-      // Only create invitation record after email is sent successfully
       await createInvitationRecord(result.invitationData);
 
       toast.success('Invitation sent successfully')
       
-      // Close modal on success
       modal.setOpen(false)
       
-      // Reset form
       setEmail('')
       setRole('VIEWER')
     } catch (error) {
