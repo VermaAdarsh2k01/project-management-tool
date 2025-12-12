@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useTransition } from 'react'
+import React, { useEffect, useRef, useTransition } from 'react'
 import TaskNavbarContainer from './TaskNavbarContainer'
 import TaskLists from './TaskLists'
 import { useTaskStore, Task } from '@/store/TaskStore'
@@ -13,10 +13,14 @@ interface IssuesContainerProps {
 const IssuesContainer = ({issuesData, currentUserRole, projectId}: IssuesContainerProps) => {
   const { setTasks } = useTaskStore()
   const [, startTransition] = useTransition()
+  const initialized = useRef(false);
   
   useEffect(() => {
-    setTasks(issuesData);
-  }, [issuesData, setTasks]);
+    if(!initialized.current){
+      setTasks(issuesData);
+      initialized.current = true;
+    }
+  }, []);
 
   const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'EDITOR'
 

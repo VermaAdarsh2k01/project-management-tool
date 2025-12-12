@@ -12,7 +12,7 @@ import { SignalHigh, SignalMedium, SignalLow } from 'lucide-react'
 import { z } from 'zod'
 import { useModal } from '../ui/animated-modal'
 import { useTaskStore } from '@/store/TaskStore'
-import { createTask } from '@/app/actions/Task'
+import { createTask} from '@/app/actions/Task'
 import { toast } from 'sonner'
 import { Status, Priority } from '@prisma/client'
 
@@ -55,7 +55,7 @@ const TaskForm = ({ projectId }: TaskFormProps) => {
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
-  const { addTask, removeTask } = useTaskStore()
+  const { addTask, removeTask , replaceTask } = useTaskStore()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +73,7 @@ const TaskForm = ({ projectId }: TaskFormProps) => {
     try {
       const validated = taskSchema.parse(formData)
       
-      const tempId = 'temp' + Math.random().toString()
+      const tempId = 'temp-' + Math.random().toString()
       // Random Temp Task for Zustand
       addTask({
         id: tempId,
@@ -97,8 +97,7 @@ const TaskForm = ({ projectId }: TaskFormProps) => {
             projectId: validated.projectId,
           })
           
-          removeTask(tempId)
-          addTask({ ...newTask })
+          replaceTask(tempId, newTask)
           modal.setOpen(false)
           toast.success("Task created successfully")
         } catch (err) {

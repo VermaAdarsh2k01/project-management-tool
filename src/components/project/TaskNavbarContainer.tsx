@@ -10,53 +10,53 @@ import { PlusIcon } from 'lucide-react';
 import TaskForm from './TaskForm';
 
 const TaskNavbarContainer = ({projectId}: {projectId: string}) => {
-  const[ title, setTitle] = useState("");
-  const[ description, setDescription] = useState("");
-  const[ status, setStatus] = useState<Status>("BACKLOG");
-  const[ priority, setPriority] = useState<Priority>("NO_PRIORITY");
-  const[ dueDate, setDueDate] = useState<Date | null>(null);  
+  // const[ title, setTitle] = useState("");
+  // const[ description, setDescription] = useState("");
+  // const[ status, setStatus] = useState<Status>("BACKLOG");
+  // const[ priority, setPriority] = useState<Priority>("NO_PRIORITY");
+  // const[ dueDate, setDueDate] = useState<Date | null>(null);  
 
-  const [isPending, startTransition] = useTransition();
-  const { addTask , updateTask , removeTask } = useTaskStore();
+  // const [isPending, startTransition] = useTransition();
+  // const { addTask , updateTask , removeTask } = useTaskStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    const optimisticTask = {
-      id: `temp-${Math.random().toString(36)}`,
-      title,
-      description,
-      status,
-      priority,
-      dueDate,
-      projectId,
-      createdAt: new Date(),
-    }
+  //   const optimisticTask = {
+  //     id: `temp-${Math.random().toString(36)}`,
+  //     title,
+  //     description,
+  //     status,
+  //     priority,
+  //     dueDate,
+  //     projectId,
+  //     createdAt: new Date(),
+  //   }
     
-    startTransition(async () => {
+  //   startTransition(async () => {
 
-      addTask(optimisticTask);
+  //     addTask(optimisticTask);
       
-      try{  
-        const newTask = await createTask({
-          title,
-          description,
-          status,
-          priority,
-          dueDate,
-          projectId,
-        });
+  //     try{  
+  //       const newTask = await createTask({
+  //         title,
+  //         description,
+  //         status,
+  //         priority,
+  //         dueDate,
+  //         projectId,
+  //       });
         
-        removeTask(optimisticTask.id);
-        addTask(newTask);
-        toast.success("Task created successfully");
-      } catch (error) {
-        console.error("Error creating task:", error);
-        removeTask(optimisticTask.id);
-        toast.error("Failed to create task");
-      }
-    });
-  };
+  //       removeTask(optimisticTask.id);
+  //       addTask(newTask);
+  //       toast.success("Task created successfully");
+  //     } catch (error) {
+  //       console.error("Error creating task:", error);
+  //       removeTask(optimisticTask.id);
+  //       toast.error("Failed to create task");
+  //     }
+  //   });
+  // };
   return (  
     <>
       <div className='flex items-center justify-center '>

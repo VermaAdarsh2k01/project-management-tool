@@ -62,15 +62,31 @@ interface OverviewProps{
                     </TabsList>
                 </div>
                 
-                <TabsContent value="overview" className='w-full h-[80%] flex items-center justify-center'>
+                <TabsContent 
+                    value="overview" 
+                    className='w-full h-[80%] flex items-center justify-center'
+                    forceMount
+                    style={{ display: isActive === 'overview' ? 'flex' : 'none' }}
+                >
                     <OverviewSection overviewData={overviewData} currentUserRole={currentUserRole}/>
                 </TabsContent>
-                <TabsContent value="issues">
+                
+                <TabsContent 
+                    value="issues"
+                    forceMount
+                    style={{ display: isActive === 'issues' ? 'block' : 'none' }}
+                >
                     <IssuesContainer issuesData={issuesData} currentUserRole={currentUserRole} projectId={projectId} />
                 </TabsContent>
-                <TabsContent value = "members">
+                
+                <TabsContent 
+                    value="members"
+                    forceMount
+                    style={{ display: isActive === 'members' ? 'block' : 'none' }}
+                >
                     <MembersContainer membersData={membersData} currentUserRole={currentUserRole} projectId={projectId} />
                 </TabsContent>
+
             </Tabs>
         </div>
     )

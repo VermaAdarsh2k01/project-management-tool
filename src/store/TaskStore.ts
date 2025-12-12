@@ -17,6 +17,7 @@ type TaskStore = {
     addTask: (t: Task) => void;
     removeTask: (id: string) => void;
     updateTask: (id:string , updates: Partial<Task>) => void;
+    replaceTask:(oldId:string , newTask:Task) => void;
     setTasks: ( tasks: Task[] ) => void;
 }
 
@@ -26,6 +27,9 @@ export const useTaskStore = create<TaskStore>((set) => ({
         removeTask: (id: string) => set((state) => ({tasks: state.tasks.filter((t) => t.id !== id)})),
         updateTask: (id:string , updates: Partial<Task>) => set((state) => ({
             tasks: state.tasks.map((t) => t.id === id ? { ...t, ...updates } : t)
+        })),
+        replaceTask:(oldId:string , newTask:Task) => set((state) => ({
+            tasks: state.tasks.map((t) => t.id === oldId ? newTask : t)
         })),
         setTasks: ( tasks: Task[] ) => set({ tasks }),
     }) 
